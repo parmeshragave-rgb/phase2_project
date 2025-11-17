@@ -11,8 +11,12 @@ import {
   Chip,
   Pagination,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+
 
 function Search() {
+  const navigate = useNavigate();
+
   const [query, setQuery] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
@@ -168,7 +172,7 @@ function Search() {
 
       <Box>
         {results.map(item => (
-          <Card key={item._id || item.uri} sx={{ mb: 2 }}>
+          <Card key={item._id || item.uri} sx={{ mb: 2 }} onClick={() => navigate("/article", { state: { article: item } })}>
             <CardContent>
               <Typography variant="h6">{item.headline?.main}</Typography>
               <Typography variant="body2" sx={{ mt: 1 }}>
@@ -185,11 +189,12 @@ function Search() {
       {results.length > 0 && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
           <Pagination
-            count={100}
-            page={1}
+            count={totalPages}
+            page={page}
             onChange={handlePageChange}
             color="primary"
           />
+
         </Box>
       )}
     </Box>

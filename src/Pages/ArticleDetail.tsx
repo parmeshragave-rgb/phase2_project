@@ -1,52 +1,161 @@
-import { useLocation } from "react-router-dom";
-import { Box, Typography, Card, CardContent, CardMedia, Button, Link } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Box,
+  Typography,
+  Button,
+  Avatar,
+  Chip,
+  Divider
+} from "@mui/material";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
-const FALLBACK_IMAGE = "https://via.placeholder.com/600x400.png?text=No+Image";
+export default function ArticleDetail() {
+  const navigate = useNavigate();
+  const { state } = useLocation();
+  const article = state?.article;
 
-function ArticleDetail() {
-  const location = useLocation();
-  const article = location.state?.article;
+  // If user tries to directly type /article in browser
+  if (!article) {
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography variant="h5" fontWeight="bold">
+          No article selected.
+        </Typography>
+        <Typography sx={{ mt: 1 }}>
+          Please go back and select an article.
+        </Typography>
 
-  if (!article) return <Typography>No article selected.</Typography>;
+        <Button variant="contained" sx={{ mt: 3 }} onClick={() => navigate("/")}>
+          Go Home
+        </Button>
+      </Box>
+    );
+  }
 
-  const imageUrl =
+  // Determine best possible image
+  const image =
     article.multimedia?.[0]?.url ||
+    article.media?.[0]?.["media-metadata"]?.[2]?.url ||
+    article.media?.[0]?.["media-metadata"]?.[1]?.url ||
     article.media?.[0]?.["media-metadata"]?.[0]?.url ||
-    FALLBACK_IMAGE;
+    "";
+
+  const title = article.title || article.headline?.main;
+  const abstract = article.abstract || article.snippet;
+  const author =
+    article.byline?.original ||
+    article.byline ||
+    "Unknown Author";
+
+  const published =
+    article.published_date || article.pub_date || "";
+
+  const paragraphs = [
+    article.lead_paragraph,
+    article.abstract,
+    article.snippet,
+  ].filter(Boolean);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Card>
-        <CardMedia
-          component="img"
-          image={imageUrl}
-          alt={article.title || article.headline?.main}
-          sx={{ maxHeight: 400 }}
+    <Box sx={{ px: { xs: 2, md: 6 }, py: 4 }}>
+      <Box sx={{ maxWidth: 900, mx: "auto" }}>
+
+        {/* SECTION TAG */}
+        <Chip
+          label="NEWS ANALYSIS"
+          sx={{ mb: 2, fontSize: "0.8rem" }}
         />
-        <CardContent>
-          <Typography variant="h4" gutterBottom>
-            {article.title || article.headline?.main}
+
+        {/* TITLE */}
+        <Typography
+          variant="h3"
+          fontWeight="bold"
+          sx={{ mb: 3, lineHeight: 1.2 }}
+        >
+          {title}
+        </Typography>
+
+        {/* ABSTRACT */}
+        {abstract && (
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            sx={{ mb: 3 }}
+          >
+            {abstract}
           </Typography>
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            {article.abstract || article.snippet}
-          </Typography>
-          <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 2 }}>
-            {article.byline?.original || "Unknown Author"} |{" "}
-            {new Date(article.published_date || article.pub_date).toLocaleDateString()}
-          </Typography>
+        )}
+
+        {/* IMAGE */}
+        {image && (
+          <Box sx={{ textAlign: "center", my: 3 }}>
+            <img
+              src={image}
+              alt="article"
+              style={{
+                width: "100%",
+                maxWidth: 900,
+                borderRadius: 10,
+              }}
+            />
+
+            {/* caption if exists */}
+            {article.caption && (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: "block", mt: 1 }}
+              >
+                {article.caption}
+              </Typography>
+            )}
+          </Box>
+        )}
+
+        {/* AUTHOR + DATE */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, my: 3 }}>
+          <Avatar>{author[0]}</Avatar>
+          <Box>
+            <Typography variant="subtitle1">
+              {author}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {published ? new Date(published).toLocaleString() : ""}
+            </Typography>
+          </Box>
+        </Box>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* FULL PARAGRAPHS */}
+        {paragraphs.length > 0 ? (
+          paragraphs.map((p, i) => (
+            <Typography
+              key={i}
+              variant="body1"
+              sx={{ mb: 3, lineHeight: 1.7 }}
+            >
+              {p}
+            </Typography>
+          ))
+        ) : (
+          <Typography>No detailed text available.</Typography>
+        )}
+
+        {/* READ FULL ARTICLE BUTTON */}
+        <Box sx={{ textAlign: "left", mt: 4 }}>
           <Button
             variant="contained"
-            component={Link}
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
+            endIcon={<OpenInNewIcon />}
+            onClick={() =>
+              window.open(article.url, "_blank", "noopener")
+            }
           >
-            Read More on NYT
+            Read full article at NYT
           </Button>
-        </CardContent>
-      </Card>
+        </Box>
+
+      </Box>
     </Box>
   );
 }
-
-export default ArticleDetail;

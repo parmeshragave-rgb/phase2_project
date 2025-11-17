@@ -1,142 +1,231 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  CardMedia,
-  Grid,
-  Link,
+    Box,
+    Typography,
+    Card,
+    CardContent,
+    CardMedia,
+    Grid,
+    Link,
+    Divider,
+    Toolbar,
+    CardActions,
+    IconButton
 } from "@mui/material";
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { useNavigate } from "react-router-dom";
 
 const API_KEY = import.meta.env.VITE_NYT_API_KEY;
-const sections = ["home", "world", "technology", "sports"];
+
+const SECTIONS = ["world", "technology"];
 const FALLBACK_IMAGE =
-  "https://via.placeholder.com/180x120.png?text=No+Image";
+    "https://via.placeholder.com/300x200.png?text=No+Image";
 
 function HomePage() {
-  const [topStories, setTopStories] = useState<any>({});
-  const [trendingStories, setTrendingStories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
-  
 
-  const fetchTopStories = () => {
-    const topData: any = {};
-    let completed = 0;
 
-    sections.forEach((section) => {
-      axios
-        .get(`https://api.nytimes.com/svc/topstories/v2/${section}.json`, {
-          params: { "api-key": API_KEY },
-        })
-        .then((res) => {
-          topData[section] = res.data.results.slice(0, 5);
-        })
-        .catch((err) => {
-          console.error(err);
-          topData[section] = [];
-        })
-        .finally(() => {
-          completed += 1;
-          if (completed === sections.length) {
-            setTopStories(topData);
-            setLoading(false);
-          }
-        });
-    });
-  };
+    const [topStories, setTopStories] = useState<any[]>([]);
+    const [sectionStories, setSectionStories] = useState<any>({});
+    const [popularStories, setPopularStories] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-  const fetchTrendingStories = () => {
-    axios
-      .get(`https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json`, {
-        params: { "api-key": API_KEY },
-      })
-      .then((res) => setTrendingStories(res.data.results.slice(0, 10)))
-      .catch((err) => {
-        console.error(err);
-        setTrendingStories([]);
-      });
-  };
-  useEffect(() => {
-    fetchTopStories();
-    fetchTrendingStories();
-  }, []);
+    const fetchTopStories = async () => {
+        const res = await axios.get(
+            `https://api.nytimes.com/svc/topstories/v2/home.json`,
+            { params: { "api-key": API_KEY } }
+        );
+        setTopStories(res.data.results.slice(0, 6));
+    };
 
-  if (loading) return <Typography>Loading...</Typography>;
+    const fetchSectionStories = async () => {
+        const data: any = {};
 
-  const renderArticleCard = (article: any) => {
-    const imageUrl =
-      article.multimedia?.[0]?.url ||
-      article.media?.[0]?.["media-metadata"]?.[0]?.url ||
-      FALLBACK_IMAGE;
+        await Promise.all(
+            SECTIONS.map((section) =>
+                axios
+                    .get(
+                        `https://api.nytimes.com/svc/topstories/v2/${section}.json`,
+                        { params: { "api-key": API_KEY } }
+                    )
+                    .then((res) => {
+                        data[section] = res.data.results.slice(0, 6);
+                    })
+                    .catch(() => {
+                        data[section] = [];
+                    })
+            )
+        );
+
+        setSectionStories(data);
+    };
+
+    const fetchPopularStories = async () => {
+        const res = await axios.get(
+            `https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json`,
+            { params: { "api-key": API_KEY } }
+        );
+        setPopularStories(res.data.results.slice(0, 8));
+    };
+
+    useEffect(() => {
+        Promise.all([
+            fetchTopStories(),
+            fetchSectionStories(),
+            fetchPopularStories(),
+        ]).finally(() => setLoading(false));
+    }, []);
+
+    if (loading) return <Typography>Loading...</Typography>;
+
+    // ------------------------- MAIN LEFT CARD -------------------------
+    const MainCard = ({ article }: any) => {
+        const img =
+            article.multimedia?.[0]?.url ||
+            article.media?.[0]?.["media-metadata"]?.[2]?.url ||
+            FALLBACK_IMAGE;
+
+        return (
+
+            <Card sx={{ display: "flex", width: "800px", height: 160, mb: 2 }}>
+                <Box
+                    sx={{ display: "flex", cursor: "pointer", width: "100%" }}
+                    onClick={() => navigate("/article", { state: { article } })}
+                >
+                    <CardMedia
+                        component="img"
+                        image={img}
+                        sx={{ width: 170, height: "100%", objectFit: "cover" }}
+                    />
+
+                    <CardContent sx={{ overflow: "hidden" }}>
+                        <Typography variant="h6" fontWeight="bold" noWrap>
+                            {article.title || article.headline?.main}
+                        </Typography>
+
+                        <Typography variant="body2" mt={1} sx={{ maxHeight: 60, overflow: "hidden" }}>
+                            {article.abstract}
+                        </Typography>
+                    </CardContent>
+                </Box>
+
+                {/* <CardActions>
+        <IconButton onClick={(e) => { e.stopPropagation(); }}>
+            <FavoriteBorderIcon />
+        </IconButton>
+
+        <IconButton
+            onClick={(e) => {
+                e.stopPropagation();
+                window.open(article.url, "_blank");
+            }}
+        >
+            <OpenInNewIcon />
+        </IconButton>
+    </CardActions> */}
+            </Card>
+
+        );
+    };
+
+
+    const PopularCard = ({ article }: any) => {
+        const img =
+            article.media?.[0]?.["media-metadata"]?.[2]?.url ||
+            article.multimedia?.[0]?.url ||
+            FALLBACK_IMAGE;
+
+        return (
+            <Card
+                sx={{
+                    width: "350px",
+                    height: 280,
+                    mb: 3,
+                    borderRadius: 2,
+                }}
+            >
+                <Box onClick={() => navigate("/article", { state: { article } })}>
+                    <CardMedia
+                        component="img"
+                        image={img}
+                        sx={{
+                            width: "100%",
+                            height: 180,
+                            objectFit: "cover",
+                        }}
+                    />
+
+                    <CardContent>
+
+                        <Typography variant="subtitle1" fontWeight="bold">
+                            {article.title}
+                        </Typography>
+
+                    </CardContent>
+                </Box>
+            </Card>
+        );
+    };
 
     return (
-      <Card sx={{ display: "flex", mb: 2 }} key={article.url}>
-        <CardMedia
-          component="img"
-          sx={{ width: 180 }}
-          image={imageUrl}
-          alt={article.title || article.headline?.main}
-        />
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
-          <CardContent>
-            <Link
-              href={article.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
-            >
-              <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                {article.title || article.headline?.main}
-              </Typography>
-            </Link>
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              {article.abstract || article.snippet}
-            </Typography>
-            <Typography variant="caption" color="textSecondary">
-              {article.byline?.original || "Unknown Author"} |{" "}
-              {new Date(article.published_date || article.pub_date).toLocaleDateString()}
-            </Typography>
-          </CardContent>
+        <Box sx={{ p: 3 }}>
+            <Grid container spacing={4}>
+                {/* ---------------- LEFT COLUMN ---------------- */}
+                <Grid item xs={12} md={8}>
+                    <Toolbar />
+                    <Typography variant="h4" mb={2}>
+                        Top Stories
+                    </Typography>
+
+                    {topStories.map((a) => (
+                        <MainCard key={a.url} article={a} />
+                    ))}
+
+                    <Divider sx={{ my: 4 }} />
+
+                    {SECTIONS.map((sec) =>
+                        sectionStories[sec]?.length > 0 ? (
+                            <Box key={sec} sx={{ mb: 4 }}>
+                                <Typography variant="h5" mb={2} textTransform="capitalize">
+                                    {sec}
+                                </Typography>
+
+                                {sectionStories[sec].map((a: any) => (
+                                    <MainCard key={a.url} article={a} />
+                                ))}
+                            </Box>
+                        ) : null
+                    )}
+                </Grid>
+
+                {/* ---------------- RIGHT SIDEBAR (ALWAYS FIXED) ---------------- */}
+
+                <Grid
+                    item
+                    xs={12}
+                    md={4}
+                    sx={{
+                        position: "sticky",
+                        top: 80,
+                        alignSelf: "flex-start",
+                    }}
+                >
+                    <Toolbar />
+
+                    <Typography variant="h5" mb={2}>
+                        Most Popular
+                    </Typography>
+
+                    {popularStories.map((p) => (
+                        <PopularCard key={p.url} article={p} />
+                    ))}
+                </Grid>
+            </Grid>
         </Box>
-      </Card>
     );
-  };
-
-  return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" mb={2}>
-        Top Stories
-      </Typography>
-      {sections.map((section) => (
-        <Box key={section} sx={{ mb: 4 }}>
-          <Typography variant="h5" mb={1}>
-            {section.toUpperCase()}
-          </Typography>
-          <Grid container spacing={2}>
-            {topStories[section]?.map((article: any) => (
-              <Grid item xs={12} md={6} key={article.url}>
-                {renderArticleCard(article)}
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-      ))}
-
-      <Typography variant="h4" mb={2}>
-        Trending Stories
-      </Typography>
-      <Grid container spacing={2}>
-        {trendingStories.map((article) => (
-          <Grid item xs={12} md={6} key={article.url}>
-            {renderArticleCard(article)}
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
-  );
 }
 
 export default HomePage;

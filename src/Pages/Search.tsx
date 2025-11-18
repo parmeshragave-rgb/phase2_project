@@ -1,6 +1,4 @@
-// src/pages/Search.tsx
-import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -13,295 +11,165 @@ import {
   Card,
   CardMedia,
   CardContent,
-  CircularProgress,
   Chip,
   Collapse,
   Pagination,
+  Toolbar,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import SkeletonCard from "../Components/SkeletonCard";
+import FavoriteHeart from "../Components/FavoriteHeart";
+
 import ClearIcon from "@mui/icons-material/Clear";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import SearchIcon from '@mui/icons-material/Search';
 
-/**
- * Search.tsx
- * - Mixed random default content (different UI from HomePage)
- * - Search results from NYT Article Search
- * - Pagination, images, responsive layout, filters, debounce
- */
+const API_KEY = import.meta.env?.VITE_NYT_API_KEY || "";
+const FALLBACK_IMAGE = "https://placehold.co/900x500?text=No+Image";
+const TOPICS = ["Arts", "Business", "Politics", "Science", "Technology", "World"];
+const KEYWORDS = ["Opinion", "Health", "Travel", "Sports", "Culture"];
 
-// NYT API key (Vite env)
-const API_KEY = import.meta.env.VITE_NYT_API_KEY as string;
+function getImage(article) {
+  const mm = article.multimedia;
 
-// Fallback image
-const FALLBACK_IMAGE = "https://via.placeholder.com/800x450.png?text=No+Image";
+  let raw =
+    (Array.isArray(mm) && mm[0]?.url) ||
+    mm?.default?.url ||
+    mm?.thumbnail?.url ||
+    article.media?.[0]?.["media-metadata"]?.slice(-1)?.[0]?.url ||
+    null;
 
-// helpers to safely pick image from various NYT response shapes
-function getImageForArticle(article: any): string {
-  // TopStories / MostPopular multimedia array: each item has url
-  if (Array.isArray(article.multimedia) && article.multimedia.length > 0) {
-    // prefer wide images
-    const candidate =
-      article.multimedia.find((m: any) => m.width && m.width >= 600) || article.multimedia[0];
-    const url = candidate?.url;
-    if (url) return url.startsWith("http") ? url : `https://www.nytimes.com/${url}`;
-  }
+  if (!raw) return FALLBACK_IMAGE;
 
-  // Article Search multimedia entries sometimes have relative url in .multimedia[0].url
-  if (Array.isArray(article.multimedia) && article.multimedia.length > 0) {
-    const m = article.multimedia[0];
-    if (m?.url) return m.url.startsWith("http") ? m.url : `https://www.nytimes.com/${m.url}`;
-  }
+  if (/^https?:\/\//i.test(raw)) return raw;
 
-  // media -> media-metadata
-  if (Array.isArray(article.media) && article.media.length > 0) {
-    const meta = article.media[0]["media-metadata"];
-    if (Array.isArray(meta) && meta.length > 0) {
-      const last = meta[meta.length - 1];
-      if (last?.url) return last.url;
-    }
-  }
-
-  // some Article Search docs include legacy "multimedia" with 'url'
-  if (article?.multimedia?.length && article.multimedia[0]?.url) {
-    const u = article.multimedia[0].url;
-    return u.startsWith("http") ? u : `https://www.nytimes.com/${u}`;
-  }
-
-  return FALLBACK_IMAGE;
+  return raw.startsWith("/")
+    ? `https://www.nytimes.com${raw}`
+    : `https://www.nytimes.com/${raw}`;
 }
 
-// Utility: pick random N items from an array
-function pickRandom<T>(arr: T[], n: number): T[] {
-  const copy = arr.slice();
-  const out: T[] = [];
-  while (out.length < n && copy.length > 0) {
-    const idx = Math.floor(Math.random() * copy.length);
-    out.push(copy.splice(idx, 1)[0]);
-  }
-  return out;
-}
-
-const DEFAULT_SECTIONS = ["world", "technology", "science", "business"];
-
-const topicsSample = ["Arts", "Business", "Politics", "Science", "Technology", "World"];
-const keywordsSample = ["Opinion", "Health", "Travel", "Sports", "Culture"];
-
-export default function Search(): JSX.Element {
+export default function Search() {
   const navigate = useNavigate();
 
-  // search UI state
   const [query, setQuery] = useState("");
+  const [topic, setTopic] = useState("");
+  const [keywords, setKeywords] = useState([]);
+
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [noResult, setNoResult] = useState(false);
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedTopic, setSelectedTopic] = useState("");
-  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
 
-  // default mixed content (random)
-  const [defaultArticles, setDefaultArticles] = useState<any[]>([]);
-  const [defaultLoading, setDefaultLoading] = useState(true);
-
-  // search results
-  const [results, setResults] = useState<any[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [noResults, setNoResults] = useState(false);
-
-  // pagination (UI uses 1-based pages)
-  const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
-
-  // debounce ref id
-  const debounceRef = useRef<number | null>(null);
-
-  // whether user is searching (non-empty query)
-  const isSearching = query.trim().length > 0;
-
-  // build fq for Article Search API
-  const buildFilterQuery = () => {
-    const parts: string[] = [];
-    if (selectedTopic) parts.push(`section_name:("${selectedTopic}")`);
-    if (selectedKeywords.length > 0) {
-      const kw = selectedKeywords.map((k) => `news_desk:("${k}")`).join(" OR ");
-      parts.push(`(${kw})`);
+  const buildFilter = () => {
+    const parts = [];
+    if (topic) parts.push(`section.name:("${topic}")`);
+    if (keywords.length > 0) {
+      const f = keywords.map(k => `desk:("${k}")`).join(" OR ");
+      parts.push(`(${f})`);
     }
-    return parts.join(" AND ");
+    return parts.join(" AND ") || undefined;
   };
 
-  // Fetch default mixed random content (different from homepage)
-  useEffect(() => {
-    const fetchMixed = async () => {
-      setDefaultLoading(true);
-      try {
-        // pick 3 or 4 sections randomly from DEFAULT_SECTIONS
-        const sectionsPicked = pickRandom(DEFAULT_SECTIONS, 4);
-        // fetch each section topstories and pick 2 random each
-        const reqs = sectionsPicked.map((s) =>
-          axios.get(`https://api.nytimes.com/svc/topstories/v2/${s}.json`, {
-            params: { "api-key": API_KEY },
-          })
-        );
+  const fetchArticles = async (pageNum = 1) => {
+    setLoading(true);
 
-        const responses = await Promise.all(reqs);
-        const merged: any[] = [];
-        responses.forEach((res, idx) => {
-          const list = res.data.results ?? [];
-          // pick 2 random items from the list
-          const two = pickRandom(list, 2);
-          two.forEach((it: any) => {
-            // keep section info
-            merged.push({ ...it, _defaultSection: sectionsPicked[idx] });
-          });
-        });
-
-        // shuffle the merged list so it looks mixed
-        const shuffled = merged.sort(() => Math.random() - 0.5);
-        setDefaultArticles(shuffled);
-      } catch (err) {
-        console.error("Error fetching mixed default news:", err);
-        setDefaultArticles([]);
-      } finally {
-        setDefaultLoading(false);
-      }
-    };
-
-    fetchMixed();
-    // run on mount only
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // PERFORM search (page is 1-based in UI, mapped to 0-based for API)
-  const performSearch = async (uiPage = 1) => {
-    const q = query.trim();
-    if (!q) return;
-
-    setSearchLoading(true);
-    setNoResults(false);
-
-    const params: any = {
-      q,
+    const params = {
       "api-key": API_KEY,
-      page: Math.max(0, uiPage - 1),
+      page: pageNum - 1,
+      q: query.trim() || " ",
     };
 
-    const fq = buildFilterQuery();
+    const fq = buildFilter();
     if (fq) params.fq = fq;
 
+    if (startDate) params.begin_date = startDate.replace(/-/g, "");
+    if (endDate) params.end_date = endDate.replace(/-/g, "");
+    console.log(startDate)
     try {
-      const res = await axios.get("https://api.nytimes.com/svc/search/v2/articlesearch.json", { params });
-      const docs = res.data.response?.docs ?? [];
-      const hits = res.data.response?.meta?.hits ?? 0;
+      const res = await axios.get(
+        "https://api.nytimes.com/svc/search/v2/articlesearch.json",
+        { params }
+      );
 
-      setResults(docs);
-      setNoResults(docs.length === 0);
-      const pages = Math.min(Math.ceil(hits / 10), 100);
-      setTotalPages(pages > 0 ? pages : 1);
-      setPage(uiPage);
-    } catch (err) {
-      console.error("Search error:", err);
-      setResults([]);
-      setNoResults(true);
-      setTotalPages(1);
-      setPage(1);
+      const docs = res.data.response?.docs || [];
+      const hits = res.data.response?.metadata?.hits || 0;
+
+      setArticles(docs);
+      setNoResult(docs.length === 0);
+
+      setTotalPages(Math.min(Math.ceil(hits / 10), 100));
     } finally {
-      setSearchLoading(false);
-      // scroll to results
-      window.scrollTo({ top: 220, behavior: "smooth" });
+      setLoading(false);
     }
   };
 
-  // debounce input
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value;
-    setQuery(v);
+  useEffect(() => {
+    fetchArticles(page);
+  }, [page]);
 
-    if (!v.trim()) {
-      // clear search results and paging
-      setResults([]);
-      setNoResults(false);
-      setTotalPages(1);
-      setPage(1);
-      if (debounceRef.current) window.clearTimeout(debounceRef.current);
-      return;
-    }
-
-    if (debounceRef.current) window.clearTimeout(debounceRef.current);
-    // debounce 700ms
-    debounceRef.current = window.setTimeout(() => {
-      performSearch(1);
-    }, 700);
+  const handleSearch = () => {
+    fetchArticles(page);
   };
 
-  const handleClear = () => {
-    setQuery("");
-    setResults([]);
-    setNoResults(false);
-    setTotalPages(1);
-    setPage(1);
-    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+  const toggleKeyword = (k) => {
+    setKeywords(prev =>
+      prev.includes(k) ? prev.filter(x => x !== k) : [...prev, k]
+    );
   };
 
-  const toggleKeyword = (kw: string) => {
-    setSelectedKeywords((prev) => (prev.includes(kw) ? prev.filter((p) => p !== kw) : [...prev, kw]));
-  };
-
-  const handlePageChange = (_: any, value: number) => {
-    // if searching -> perform API search page
-    if (isSearching) performSearch(value);
-    else setPage(value);
-  };
-
-  // Card for vertical layout (image on top) - used for default and search results (search docs -> headline.main)
-  const VerticalCard: React.FC<{ item: any; isArticleSearch?: boolean }> = ({ item, isArticleSearch = false }) => {
-    const image = getImageForArticle(item);
-    const title = isArticleSearch ? item.headline?.main ?? item.title : item.title ?? item.headline?.main;
-    const snippet = isArticleSearch ? item.abstract ?? item.snippet : item.abstract ?? item.snippet;
-    const pubdate = isArticleSearch ? item.pub_date?.slice(0, 10) : item.published_date ?? item.pub_date;
-
+  const VerticalCard = ({ item }) => {
     return (
       <Card
         sx={{
           cursor: "pointer",
-          borderRadius: 2,
-          height: "100%",
           display: "flex",
-          flexDirection: "column",
+          flexDirection: { xs: "row", sm: "row", md: "row" },
+          width: { xs: "380px", md: "800px" },
+          height: { xs: "205px", md: "200px" },
+          borderRadius: 2,
+          overflow: "hidden",
+          boxShadow: 3,
         }}
         onClick={() => navigate("/article", { state: { article: item } })}
+
       >
+                          <FavoriteHeart article={item} />
+
+        
         <CardMedia
           component="img"
-          image={image}
-          sx={{ height: { xs: 160, sm: 180, md: 220 }, objectFit: "cover" }}
+          image={getImage(item)}
+          sx={{
+            width: { xs: "45%", sm: "45%", md: "45%" },
+            height: { xs: "100%", sm: "100%", md: "100%" },
+            objectFit: "cover",
+          }}
         />
+
         <CardContent sx={{ flex: 1 }}>
           <Typography
             fontWeight="bold"
-            sx={{
-              fontSize: { xs: "15px", md: "16px" },
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-            }}
+            sx={{ mb: 1, fontSize: { xs: "0.8rem", md: "1.1rem" } }}
           >
-            {title}
+            {item.headline?.main}
           </Typography>
 
           <Typography
             variant="body2"
-            color="text.secondary"
             sx={{
-              mt: 1,
-              fontSize: { xs: "12px", md: "14px" },
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: "vertical",
+              color: "text.secondary",
+              fontSize: { xs: "0.65rem", md: "0.9rem" },
             }}
           >
-            {snippet}
-          </Typography>
-
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-            {pubdate}
+            {item.abstract}
           </Typography>
         </CardContent>
       </Card>
@@ -309,192 +177,212 @@ export default function Search(): JSX.Element {
   };
 
   return (
-    <Box sx={{ width: "100%" }}>
-      {/* HERO SEARCH */}
-      <Box
-        sx={{
-          width: "100%",
-          background: "linear-gradient(135deg,#f2f6fb 0%, #ffffff 100%)",
-          mt: { xs: "64px", md: "72px" },
-          mb: 3,
-          py: { xs: 6, md: 10 },
-          boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-        }}
-      >
-        <Box sx={{ display: "flex", justifyContent: "center" }}>
-          <Box sx={{ width: { xs: "92%", sm: "84%", md: "72%", lg: "60%" } }}>
+    <>
+      <Toolbar />
+      <Box sx={{ width: "100%", mt: 10 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+          <Box sx={{ width: { xs: "90%", sm: "80%", md: "60%" } }}>
             <Paper
-              elevation={3}
               sx={{
+                p: 1.5,
                 display: "flex",
                 alignItems: "center",
-                gap: 1,
-                p: { xs: 1, sm: 1.5 },
-                borderRadius: "60px",
-                width: "100%",
-                bgcolor: "rgba(255,255,255,0.95)",
-                boxShadow: 3,
+                borderRadius: "50px",
               }}
             >
               <TextField
-                placeholder="Search New York Times articles..."
-                variant="outlined"
-                value={query}
-                onChange={handleInputChange}
                 fullWidth
+                variant="outlined"
+                placeholder="Search articles..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <SearchIcon sx={{ color: "text.secondary", ml: 1, mr: 1 }} />
+                      <SearchIcon />
                     </InputAdornment>
                   ),
                   endAdornment: (
-                    <>
-                      {query && (
-                        <InputAdornment position="end">
-                          <IconButton size="small" onClick={handleClear}>
-                            <ClearIcon />
-                          </IconButton>
-                        </InputAdornment>
-                      )}
-                    </>
+                    query && (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => {
+                            setQuery("");
+                            fetchArticles();
+                          }}
+                        >
+                          <ClearIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    )
                   ),
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: "60px",
-                    backgroundColor: "transparent",
+                    borderRadius: "50px",
+                    bgcolor: "white",
                     "& fieldset": { border: "none" },
-                    "&:hover fieldset": { border: "none" },
-                    "&.Mui-focused fieldset": { border: "none" },
-                    transition: "all 0.2s ease",
                   },
                 }}
               />
 
               <Button
                 variant="contained"
-                onClick={() => performSearch(1)}
+                size="small"
                 sx={{
-                  borderRadius: "50px",
+                  ml: 2,
                   bgcolor: "#c00707ff",
-                  color: "white",
-                  px: 3,
-                  py: 1,
+                  color: "whitesmoke",
+                  width: "5px",
+                  fontWeight: "bold",
+                  "&:hover": { bgcolor: "#a00505" },
                 }}
+                onClick={handleSearch}
               >
-                Search
+                <SearchIcon />
+              </Button>
+
+              <Button
+                variant="text"
+                sx={{
+                  ml: 1,
+                  borderColor: "#c00707ff",
+                  color: "#c00707ff",
+                  fontWeight: "bold",
+                  "&:hover": { borderColor: "#a00505", color: "#a00505" },
+                }}
+                onClick={() => setShowFilters((s) => !s)}
+              >
+                <FilterAltOutlinedIcon />
               </Button>
             </Paper>
           </Box>
         </Box>
 
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-          <Button variant="text" onClick={() => setShowFilters((s) => !s)}>
-            {showFilters ? "Hide filters" : "Show filters"}
-          </Button>
-        </Box>
-
         <Collapse in={showFilters}>
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-            <Box sx={{ width: { xs: "92%", sm: "84%", md: "72%", lg: "60%" } }}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Topic
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
-                  {topicsSample.map((t) => (
-                    <Chip
-                      key={t}
-                      label={t}
-                      color={t === selectedTopic ? "primary" : "default"}
-                      onClick={() => setSelectedTopic((s) => (s === t ? "" : t))}
-                      size="small"
-                    />
-                  ))}
-                </Box>
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <Paper sx={{ p: 2, width: { xs: "90%", sm: "80%", md: "60%" } }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Topic
+              </Typography>
 
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Keywords
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                  {keywordsSample.map((k) => (
-                    <Chip
-                      key={k}
-                      label={k}
-                      color={selectedKeywords.includes(k) ? "primary" : "default"}
-                      onClick={() => toggleKeyword(k)}
-                      size="small"
-                    />
-                  ))}
-                </Box>
-              </Paper>
-            </Box>
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
+                {TOPICS.map((t) => (
+                  <Chip
+                    key={t}
+                    label={t}
+                    color={topic === t ? "error" : "default"}
+                    onClick={() => setTopic(topic === t ? "" : t)}
+                  />
+                ))}
+              </Box>
+
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Keywords
+              </Typography>
+
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                {KEYWORDS.map((k) => (
+                  <Chip
+                    key={k}
+                    label={k}
+                    color={keywords.includes(k) ? "error" : "default"}
+                    onClick={() => toggleKeyword(k)}
+                  />
+                ))}
+              </Box>
+
+              <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
+                Date Range
+              </Typography>
+
+              <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                <TextField
+                  label="Start Date"
+                  type="date"
+                  size="small"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  color="error"
+                />
+
+                <TextField
+                  label="End Date"
+                  type="date"
+                  size="small"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  color="error"
+
+                />
+              </Box>
+
+              <Button
+                size="small"
+                color="error"
+                sx={{ mt: 2 }}
+                onClick={() => {
+                  setTopic("");
+                  setKeywords([]);
+                  setStartDate("");
+                  setEndDate("");
+                }}
+              >
+                Clear Filters
+              </Button>
+               <Button
+                size="small"
+                color="error"
+                sx={{ mt: 2 ,ml:2}}
+                onClick={handleSearch}
+              >
+                Apply Filters
+              </Button>
+            </Paper>
           </Box>
         </Collapse>
-      </Box>
 
-      {/* CONTENT AREA */}
-      <Box sx={{ p: { xs: 2, md: 3 } }}>
-        {/* DEFAULT MIXED RANDOM (only when NOT searching) */}
-        {!isSearching && (
-          <>
-            {defaultLoading ? (
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <>
-                <Typography variant="h5" sx={{ mb: 2 }}>
-                  Explore
-                </Typography>
-
-                <Grid container spacing={3}>
-                  {defaultArticles.map((it: any, idx: number) => (
-                    <Grid item xs={12} sm={6} md={3} key={it.url || `${it.title}-${idx}`}>
-                      <VerticalCard item={it} />
-                    </Grid>
-                  ))}
+        <Box sx={{ p: 2 }}>
+          {loading ? (
+            <Grid container spacing={3} sx={{ display: "flex", justifyContent: "center" }}>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Grid item xs={12} sm={6} md={4} key={i}>
+                  <SkeletonCard
+                    variant="horizontal"
+                    height={200}
+                    sx={{ width: { xs: "380px", md: "800px" } }}
+                  />
                 </Grid>
-              </>
-            )}
-          </>
-        )}
+              ))}
+            </Grid>
+          ) : noResult ? (
 
-        {/* SEARCH RESULTS */}
-        {isSearching && (
-          <>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-              <Typography variant="h5" sx={{ mr: 2 }}>
-                Results for “{query}”
-              </Typography>
-              {searchLoading && <CircularProgress size={18} />}
-            </Box>
-
-            {searchLoading ? (
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
-                <CircularProgress />
-              </Box>
-            ) : noResults ? (
-              <Typography color="error">No results found</Typography>
-            ) : (
-              <>
-                <Grid container spacing={3}>
-                  {results.map((doc: any) => (
-                    <Grid item xs={12} sm={6} md={4} key={doc._id || doc.uri}>
-                      <VerticalCard item={doc} isArticleSearch />
-                    </Grid>
-                  ))}
+            <Typography color="error" textAlign="center">
+              No results found
+            </Typography>
+          ) : (
+            <Grid container spacing={3} sx={{ display: "flex", justifyContent: "center" }}>
+              {articles.map((a, i) => (
+                <Grid item xs={12} sm={6} md={4} key={i}>
+                  <VerticalCard item={a} />
                 </Grid>
+              ))}
+            </Grid>
+          )}
+        </Box>
 
-                <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-                  <Pagination count={totalPages} page={page} onChange={handlePageChange} color="primary" />
-                </Box>
-              </>
-            )}
-          </>
+        {articles.length > 0 && (
+          <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(e, v) => setPage(v)}
+            />
+          </Box>
         )}
       </Box>
-    </Box>
+    </>
   );
 }

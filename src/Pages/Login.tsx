@@ -1,4 +1,4 @@
-// src/pages/Login.tsx
+
 import React, { useState } from "react";
 import {
   Box,
@@ -141,7 +141,7 @@ export default function Login() {
       }}
     >
       <Paper sx={{ p: 4, width: 400 }}>
-        <Typography variant="h5" fontWeight="bold" mb={2}>
+        <Typography variant="h5" fontWeight="bold" mb={2} textAlign="center">
           {isLogin ? "Login" : "Sign Up"}
         </Typography>
 
@@ -172,19 +172,32 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
             />
 
-            <Button type="submit" variant="contained">
+            <Button type="submit" variant="contained" color="error">
               {isLogin ? "Login" : "Sign Up"}
             </Button>
 
             <Typography textAlign="center">OR</Typography>
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  width="100%"
+                  theme="outline"
+                  size="large"
+                  type="standard"
+                  shape="rectangular"
+                  
+                />
+              </Box>
 
-            <GoogleLogin onSuccess={handleGoogleSuccess} />
+            
           </Stack>
         </form>
 
         <Typography
           sx={{ mt: 2, cursor: "pointer" }}
           onClick={() => setIsLogin(!isLogin)}
+          textAlign="center"
+          color="error"
         >
           {isLogin ? "New user? Sign up" : "Already have an account?"}
         </Typography>

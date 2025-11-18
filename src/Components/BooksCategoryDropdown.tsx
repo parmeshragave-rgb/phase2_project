@@ -25,6 +25,7 @@ export default function BooksCategoryDropdown({ listName, onChange }: Props) {
 
   return (
     <>
+    
     <Box
       sx={{
         display: "flex",
@@ -63,14 +64,13 @@ export default function BooksCategoryDropdown({ listName, onChange }: Props) {
           },
         }}
       >
-        {/* DEFAULT OPTION */}
         <MenuItem
           onClick={() => {
             setAnchorEl(null);
             onChange("hardcover-fiction");
           }}
         >
-          All (Hardcover Fiction)
+          All
         </MenuItem>
 
         {BOOK_LISTS.map((item) => (

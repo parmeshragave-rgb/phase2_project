@@ -7,14 +7,17 @@ import {
   CardContent,
   Typography,
   Box,
-  CircularProgress,
   Toolbar,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import BooksCategoryDropdown from "../Components/BooksCategoryDropdown";
+import SkeletonCard from "../Components/SkeletonCard";
+
+
 
 
 const API_KEY = import.meta.env.VITE_NYT_API_KEY;
+
 
 interface Book {
   rank: number;
@@ -38,7 +41,7 @@ const BOOK_LISTS = [
 export default function BooksPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
-  const [listName, setListName] = useState("hardcover-fiction"); // DEFAULT LIST
+  const [listName, setListName] = useState("hardcover-fiction");
   const navigate = useNavigate();
 
   const fetchBooks = async () => {
@@ -61,19 +64,33 @@ export default function BooksPage() {
     fetchBooks();
   }, [listName]); 
 
-  if (loading)
-    return (
+ if (loading)
+  return (
+    <>
+      <Toolbar />
       <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-        <CircularProgress />
+        <Grid container spacing={2} sx={{ display: "flex", justifyContent: "center" }}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Grid item xs={12} sm={6} md={3} key={i}>
+              <SkeletonCard variant="vertical" height={330} width={280} />
+            </Grid>
+          ))}
+        </Grid>
       </Box>
-    );
+    </>
+  );
+
 
   return (
     <>
       <Toolbar />
+ 
 
+<Box sx={{display:"flex",justifyContent:"center"}}>
       <Box sx={{ p: 2 }}>
-        <Typography variant="h4" sx={{ mb: 2 }}>
+       
+
+<Typography variant="h4" sx={{ mb: 2 ,fontFamily:"sans-serif",fontWeight:"bold"}}>
           NYT Best Sellers – {BOOK_LISTS.find((x) => x.value === listName)?.label}
         </Typography>
 
@@ -81,16 +98,16 @@ export default function BooksPage() {
   listName={listName}
   onChange={(val) => setListName(val)}
 />
+        <Grid container spacing={2} sx={{display:"flex",justifyContent:"center"}} >
 
-
-        <Grid container spacing={2}>
           {books.map((book) => (
             <Grid item xs={12} sm={6} md={3} key={book.primary_isbn13}>
+               
               <Card
                 sx={{
                   cursor: "pointer",
                   borderRadius: 2,
-                  height: 300,
+                  height: 330,
                   width: 280,
                 }}
                 onClick={() =>
@@ -129,10 +146,12 @@ export default function BooksPage() {
                   </Typography>
                 </CardContent>
               </Card>
+              
             </Grid>
           ))}
         </Grid>
-      </Box>
+        </Box>
+    </Box>
     </>
   );
 }

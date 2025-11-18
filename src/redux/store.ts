@@ -1,9 +1,9 @@
-// src/redux/store.ts
+
 import { createStore } from "redux";
 import rootReducer from "./reducers";
 import { persistStore, persistReducer } from "redux-persist";
 
-// ---- FIX FOR VITE + TYPESCRIPT ----
+
 const createNoopStorage = () => {
   return {
     getItem(_key: string) {
@@ -36,7 +36,7 @@ const storage =
       : createNoopStorage()
     : createNoopStorage();
 
-// ------------------------------------
+
 
 const persistConfig = {
   key: "root",

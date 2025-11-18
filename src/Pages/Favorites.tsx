@@ -6,7 +6,9 @@ import {
   Card,
   CardMedia,
   CardContent,
-  IconButton
+  IconButton,
+  Toolbar,
+  Button
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useSelector } from "react-redux";
@@ -37,9 +39,38 @@ export default function Favorites() {
 
   if (!user)
     return (
-      <Typography sx={{ mt: 10, textAlign: "center" }}>
+      <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
+              textAlign: 'center',
+              mt:"200px"
+            }}
+          >
+            <Toolbar/>
+            <Typography
+              variant="h4"
+              sx={{
+                fontFamily: 'sans-serif',
+                fontWeight: 'bold',
+                color: '#b31b1b93',
+              }}
+            >
         Please login to view your favorites.
-      </Typography>
+              
+            </Typography>
+            
+            <Button variant="contained" sx={{bgcolor: "#c00707ff",
+                  color: "whitesmoke",
+                  fontWeight: "bold",
+                  mt:"10px"}}
+                  onClick={() => navigate("/login")}
+                  >Go to Login</Button>
+            
+          </Box>
     );
 
   return (
@@ -66,7 +97,8 @@ export default function Favorites() {
                     cursor: "pointer",
                     position: "relative",
                     borderRadius: 2,
-                    overflow: "hidden"
+                    overflow: "hidden",
+                    width:"600px"
                   }}
                   onClick={() => navigate("/article", { state: { article } })}
                 >

@@ -10,10 +10,11 @@ import {
     Divider,
     Toolbar,
 } from "@mui/material";
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+
 import { useNavigate } from "react-router-dom";
 import FavoriteHeart from "../Components/FavoriteHeart";
+import SkeletonCard from "../Components/SkeletonCard";
+
 
 const API_KEY = import.meta.env.VITE_NYT_API_KEY;
 
@@ -66,7 +67,7 @@ function HomePage() {
             `https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json`,
             { params: { "api-key": API_KEY } }
         );
-        setPopularStories(res.data.results.slice(0, 8));
+        setPopularStories(res.data.results.slice(0, 10));
     };
 
     useEffect(() => {
@@ -77,9 +78,77 @@ function HomePage() {
         ]).finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <Typography>Loading...</Typography>;
+  if (loading)
+  return (
+    <Box sx={{ p: 3, display: "flex", justifyContent: "center" }}>
+      <Grid container spacing={4}>
+        
+        <Grid item xs={12} md={8}>
+          <Toolbar />
+          <Typography
+            variant="h4"
+            mb={2}
+            sx={{ fontFamily: "sans-serif", fontWeight: "bold" }}
+          >
+            Top Stories
+          </Typography>
 
-    // ------------------------- MAIN LEFT CARD -------------------------
+          <Grid container spacing={2}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Grid item xs={12} key={i}>
+                <SkeletonCard
+                variant="vertical"
+                  sx={{
+                display: "flex",
+                width: { xs: "330px", md: "800px" },
+                height: { xs: "140px", md: "160px" },
+                mb: 2,
+                borderRadius: 2,
+ position: "relative",
+            }}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Toolbar />
+          <Typography
+            variant="h5"
+            mb={2}
+            sx={{ fontFamily: "sans-serif", fontWeight: "bold" }}
+          >
+            Most Popular
+          </Typography>
+
+          <Grid container spacing={2}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Grid item xs={12} key={i}>
+                <SkeletonCard
+                  variant="vertical"
+                  sx={{
+         width: { xs: "330px", sm: "300px", md: "350px" },
+        height: "auto",
+        mb: 3,
+        borderRadius: 2,
+        position: "relative",
+        display: "flex",
+        flexDirection: { xs: "row", sm: "column", md: "column" },
+        overflow: "hidden",
+      }}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Grid>
+
+      </Grid>
+    </Box>
+  );
+
+
+
    const MainCard = ({ article }: any) => {
     const img =
         article.multimedia?.[0]?.url ||
@@ -90,7 +159,7 @@ function HomePage() {
         <Card
             sx={{
                 display: "flex",
-                width: { xs: "150px", md: "800px" },
+                width: { xs: "330px", md: "800px" },
                 height: { xs: "140px", md: "160px" },
                 mb: 2,
                 borderRadius: 2,
@@ -108,6 +177,7 @@ function HomePage() {
                     image={img}
                     sx={{
                         width: { xs: "110px", sm: "140px", md: "170px" },
+                         minWidth: { xs: "110px", sm: "140px", md: "170px" }, 
                         height: "100%",
                         objectFit: "cover",
                         borderRadius: "8px 0 0 8px",
@@ -156,64 +226,62 @@ function HomePage() {
 
 
 
-   const PopularCard = ({ article }: any) => {
-    const img =
-        article.media?.[0]?.["media-metadata"]?.[2]?.url ||
-        article.multimedia?.[0]?.url ||
-        FALLBACK_IMAGE;
+  const PopularCard = ({ article }: any) => {
+  const img =
+    article.media?.[0]?.["media-metadata"]?.[2]?.url ||
+    article.multimedia?.[0]?.url ||
+    FALLBACK_IMAGE;
 
-    return (
-        <Card
-            sx={{
-                width: { xs: "100px", sm: "200px", md: "350px" },
-                height: { xs: "90px", sm: "200px", md: "280px" },
-                mb: 3,
-                borderRadius: 2,
-                 position: "relative",
-            }}
+  return (
+    <Card
+      sx={{
+         width: { xs: "330px", sm: "300px", md: "350px" },
+        height: "auto",
+        mb: 3,
+        borderRadius: 2,
+        position: "relative",
+        display: "flex",
+        flexDirection: { xs: "row", sm: "column", md: "column" },
+        overflow: "hidden",
+      }}
+      onClick={() => navigate("/article", { state: { article } })}
+    >
+      <FavoriteHeart article={article} />
+
+      <CardMedia
+        component="img"
+        image={img}
+        sx={{
+          width: { xs: "45%", sm: "100%", md: "100%" },
+          height: { xs: "100%", sm: 120, md: 180 },
+          objectFit: "cover",
+        }}
+      />
+
+      <CardContent sx={{ p: { xs: 1, sm: 1.5, md: 2 } }}>
+        <Typography
+          fontWeight="bold"
+          sx={{
+            fontSize: { xs: "13px", sm: "14px", md: "16px" },
+          }}
         >
-            <Box onClick={() => navigate("/article", { state: { article } })}>
-                <FavoriteHeart article={article} />
-
-                <CardMedia
-                    component="img"
-                    image={img}
-                    sx={{
-                        width: "100%",
-                        height: { xs: "50px", sm: "110px", md: "180px" },
-                        objectFit: "cover",
-                        borderRadius: "8px 8px 0 0",
-                    }}
-                />
-
-                <CardContent sx={{ p: { xs: 1, sm: 1.5, md: 2 } }}>
-                    <Typography
-                        fontWeight="bold"
-                        sx={{
-                            fontSize: { xs: "12px", sm: "14px", md: "16px" },
-                            overflow: "hidden",
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                        }}
-                    >
-                        {article.title}
-                    </Typography>
-                </CardContent>
-            </Box>
-        </Card>
-    );
+          {article.title}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
 };
 
 
+
     return (
-        <Box sx={{ p: 3 }}>
-            <Grid container spacing={4}>
-                {/* ---------------- LEFT COLUMN ---------------- */}
+        <Box sx={{ p: 3 ,display:"flex",justifyContent:"center"}}>
+            <Grid container spacing={4} >
                 <Grid item xs={12} md={8}>
                     <Toolbar />
-                    <Typography variant="h4" mb={2}>
+                    <Typography variant="h4" mb={2} sx={{fontFamily:"sans-serif",fontWeight:"bold"}}>
                         Top Stories
+
                     </Typography>
 
                     {topStories.map((a) => (
@@ -225,7 +293,7 @@ function HomePage() {
                     {SECTIONS.map((sec) =>
                         sectionStories[sec]?.length > 0 ? (
                             <Box key={sec} sx={{ mb: 4 }}>
-                                <Typography variant="h5" mb={2} textTransform="capitalize">
+                                <Typography variant="h5" mb={2} textTransform="capitalize" sx={{fontFamily:"sans-serif",fontWeight:"bold"}}>
                                     {sec}
                                 </Typography>
 
@@ -237,7 +305,6 @@ function HomePage() {
                     )}
                 </Grid>
 
-                {/* ---------------- RIGHT SIDEBAR (ALWAYS FIXED) ---------------- */}
 
                 <Grid
                     item
@@ -251,7 +318,7 @@ function HomePage() {
                 >
                     <Toolbar />
 
-                    <Typography variant="h5" mb={2}>
+                    <Typography variant="h5" mb={2} sx={{fontFamily:"sans-serif",fontWeight:"bold"}}>
                         Most Popular
                     </Typography>
 

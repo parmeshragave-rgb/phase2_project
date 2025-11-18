@@ -68,23 +68,22 @@ export default function Navbar() {
           </Stack>
         </Box>
 
-        {/* Middle NAV LINKS */}
+      
         <Box sx={{ flexGrow: 1 }} />
 
         <Stack direction="row" spacing={2} alignItems="center">
           <Button color="inherit" onClick={() => navigate("/")}>Home</Button>
           <Button color="inherit" onClick={() => navigate("/search")}>Articles</Button>
-          <Button color="inherit" onClick={() => navigate("/sports")}>Sports</Button>
-          <Button color="inherit" onClick={() => navigate("/technology")}>Technology</Button>
-          <Button color="inherit" onClick={() => navigate("/bookmarks")}>Bookmarks</Button>
+          <Button color="inherit" onClick={() => navigate("/books")}>Books</Button>
+         <Button color="inherit" onClick={() => navigate("/favorites")}>Favorites</Button>
         </Stack>
 
         <Box sx={{ flexGrow: 1 }} />
 
-        {/* RIGHT SIDE BUTTONS */}
+    
         <Stack direction="row" spacing={2} alignItems="center">
 
-          {/* Subscribe button */}
+    
           
           <Button
             sx={{
@@ -99,7 +98,7 @@ export default function Navbar() {
           </Button>
 
 
-          {/* If NOT logged in -> Show Login */}
+          
           {!isAuthenticated && (
             <Button
               variant="outlined"
@@ -115,7 +114,7 @@ export default function Navbar() {
             </Button>
           )}
 
-          {/* If logged in -> Show AVATAR */}
+      
           {isAuthenticated && (
             <>
               <IconButton onClick={handleAvatarClick}>
@@ -134,9 +133,7 @@ export default function Navbar() {
                   {user?.username}
                 </MenuItem>
 
-                <MenuItem onClick={() => { handleClose(); navigate("/profile"); }}>
-                  Profile
-                </MenuItem>
+                
 
                 <MenuItem onClick={handleLogout}>
                   Logout

@@ -7,15 +7,13 @@ import {
     CardContent,
     CardMedia,
     Grid,
-    Link,
     Divider,
     Toolbar,
-    CardActions,
-    IconButton
 } from "@mui/material";
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useNavigate } from "react-router-dom";
+import FavoriteHeart from "../Components/FavoriteHeart";
 
 const API_KEY = import.meta.env.VITE_NYT_API_KEY;
 
@@ -82,93 +80,131 @@ function HomePage() {
     if (loading) return <Typography>Loading...</Typography>;
 
     // ------------------------- MAIN LEFT CARD -------------------------
-    const MainCard = ({ article }: any) => {
-        const img =
-            article.multimedia?.[0]?.url ||
-            article.media?.[0]?.["media-metadata"]?.[2]?.url ||
-            FALLBACK_IMAGE;
+   const MainCard = ({ article }: any) => {
+    const img =
+        article.multimedia?.[0]?.url ||
+        article.media?.[0]?.["media-metadata"]?.[2]?.url ||
+        FALLBACK_IMAGE;
 
-        return (
-
-            <Card sx={{ display: "flex", width: "800px", height: 160, mb: 2 }}>
-                <Box
-                    sx={{ display: "flex", cursor: "pointer", width: "100%" }}
-                    onClick={() => navigate("/article", { state: { article } })}
-                >
-                    <CardMedia
-                        component="img"
-                        image={img}
-                        sx={{ width: 170, height: "100%", objectFit: "cover" }}
-                    />
-
-                    <CardContent sx={{ overflow: "hidden" }}>
-                        <Typography variant="h6" fontWeight="bold" noWrap>
-                            {article.title || article.headline?.main}
-                        </Typography>
-
-                        <Typography variant="body2" mt={1} sx={{ maxHeight: 60, overflow: "hidden" }}>
-                            {article.abstract}
-                        </Typography>
-                    </CardContent>
-                </Box>
-
-                {/* <CardActions>
-        <IconButton onClick={(e) => { e.stopPropagation(); }}>
-            <FavoriteBorderIcon />
-        </IconButton>
-
-        <IconButton
-            onClick={(e) => {
-                e.stopPropagation();
-                window.open(article.url, "_blank");
+    return (
+        <Card
+            sx={{
+                display: "flex",
+                width: { xs: "150px", md: "800px" },
+                height: { xs: "140px", md: "160px" },
+                mb: 2,
+                borderRadius: 2,
+ position: "relative",
             }}
         >
-            <OpenInNewIcon />
-        </IconButton>
-    </CardActions> */}
-            </Card>
-
-        );
-    };
-
-
-    const PopularCard = ({ article }: any) => {
-        const img =
-            article.media?.[0]?.["media-metadata"]?.[2]?.url ||
-            article.multimedia?.[0]?.url ||
-            FALLBACK_IMAGE;
-
-        return (
-            <Card
-                sx={{
-                    width: "350px",
-                    height: 280,
-                    mb: 3,
-                    borderRadius: 2,
-                }}
+            <Box
+                sx={{ display: "flex", cursor: "pointer", width: "100%" }}
+                onClick={() => navigate("/article", { state: { article } })}
             >
-                <Box onClick={() => navigate("/article", { state: { article } })}>
-                    <CardMedia
-                        component="img"
-                        image={img}
+                  <FavoriteHeart article={article} />
+
+                <CardMedia
+                    component="img"
+                    image={img}
+                    sx={{
+                        width: { xs: "110px", sm: "140px", md: "170px" },
+                        height: "100%",
+                        objectFit: "cover",
+                        borderRadius: "8px 0 0 8px",
+                    }}
+                />
+
+                <CardContent
+                    sx={{
+                        overflow: "hidden",
+                        p: { xs: 1, md: 2 },
+                    }}
+                >
+                    <Typography
+                        variant="h6"
+                        fontWeight="bold"
                         sx={{
-                            width: "100%",
-                            height: 180,
-                            objectFit: "cover",
+                            fontSize: { xs: "13px", sm: "15px", md: "17px" },
+                            overflow: "hidden",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
                         }}
-                    />
+                    >
+                        {article.title || article.headline?.main}
+                    </Typography>
 
-                    <CardContent>
+                    <Typography
+                        variant="body2"
+                        mt={1}
+                        sx={{
+                            fontSize: { xs: "11px", sm: "13px", md: "14px" },
+                            maxHeight: { xs: "35px", md: "60px" },
+                            overflow: "hidden",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                        }}
+                    >
+                        {article.abstract}
+                    </Typography>
+                </CardContent>
+            </Box>
+        </Card>
+    );
+};
 
-                        <Typography variant="subtitle1" fontWeight="bold">
-                            {article.title}
-                        </Typography>
 
-                    </CardContent>
-                </Box>
-            </Card>
-        );
-    };
+
+   const PopularCard = ({ article }: any) => {
+    const img =
+        article.media?.[0]?.["media-metadata"]?.[2]?.url ||
+        article.multimedia?.[0]?.url ||
+        FALLBACK_IMAGE;
+
+    return (
+        <Card
+            sx={{
+                width: { xs: "100px", sm: "200px", md: "350px" },
+                height: { xs: "90px", sm: "200px", md: "280px" },
+                mb: 3,
+                borderRadius: 2,
+                 position: "relative",
+            }}
+        >
+            <Box onClick={() => navigate("/article", { state: { article } })}>
+                <FavoriteHeart article={article} />
+
+                <CardMedia
+                    component="img"
+                    image={img}
+                    sx={{
+                        width: "100%",
+                        height: { xs: "50px", sm: "110px", md: "180px" },
+                        objectFit: "cover",
+                        borderRadius: "8px 8px 0 0",
+                    }}
+                />
+
+                <CardContent sx={{ p: { xs: 1, sm: 1.5, md: 2 } }}>
+                    <Typography
+                        fontWeight="bold"
+                        sx={{
+                            fontSize: { xs: "12px", sm: "14px", md: "16px" },
+                            overflow: "hidden",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                        }}
+                    >
+                        {article.title}
+                    </Typography>
+                </CardContent>
+            </Box>
+        </Card>
+    );
+};
+
 
     return (
         <Box sx={{ p: 3 }}>

@@ -12,6 +12,7 @@ export interface LoginSuccessAction {
 
 export interface LogoutAction {
   type: typeof LOGOUT;
+  [key: string]: any;
 }
 
 

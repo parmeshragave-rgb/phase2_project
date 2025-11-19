@@ -23,7 +23,7 @@ jest.mock("react-redux", () => ({
   useDispatch: () => mockDispatch,
 }));
 
-// Mock Google Login button
+
 jest.mock("@react-oauth/google", () => ({
   GoogleLogin: ({ onSuccess }: any) => (
     <button onClick={() => onSuccess({ credential: "google-token" })}>
@@ -32,7 +32,7 @@ jest.mock("@react-oauth/google", () => ({
   ),
 }));
 
-// Mock jwtDecode
+
 jest.mock("jwt-decode", () => ({
   jwtDecode: () => ({
     name: "Google User",

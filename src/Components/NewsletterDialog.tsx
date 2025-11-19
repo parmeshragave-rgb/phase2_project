@@ -8,11 +8,12 @@ import {
   Button,
   Typography,
 } from "@mui/material";
+import React from "react";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void; // ⭐ NEW
+  onSuccess: () => void; 
 }
 
 export default function NewsletterDialog({ open, onClose, onSuccess }: Props) {
@@ -39,7 +40,7 @@ export default function NewsletterDialog({ open, onClose, onSuccess }: Props) {
     setSuccess("You have successfully subscribed!");
 
     setTimeout(() => {
-      onSuccess(); // ⭐ closes + updates Redux
+      onSuccess(); 
     }, 1000);
   };
 

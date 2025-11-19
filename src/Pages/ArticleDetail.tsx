@@ -1,4 +1,5 @@
-// src/pages/ArticleDetail.tsx
+import React from "react";
+
 import { useLocation, useNavigate } from "react-router-dom";
 import {
     Box,
@@ -7,19 +8,17 @@ import {
     Avatar,
     Chip,
     Divider,
-    Toolbar,
     Stack
 } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 export default function ArticleDetail() {
+    window.scrollTo(0, 0);
     const navigate = useNavigate();
     const { state } = useLocation();
     const article = state?.article;
 
-    // -------------------------------
-    // FIX #1: Unified Reliable Image
-    // -------------------------------
+    
     const image =
         article?.multimedia?.[0]?.url
             ? article.multimedia[0].url.startsWith("http")
@@ -27,9 +26,7 @@ export default function ArticleDetail() {
                 : `https://www.nytimes.com/${article.multimedia[0].url}`
             : article?.media?.[0]?.["media-metadata"]?.slice(-1)?.[0]?.url || "";
 
-    // -------------------------------
-    // Normalize fields
-    // -------------------------------
+    
     const title = article.title || article.headline?.main;
     const abstract = article.abstract || article.snippet;
     const author =
@@ -48,11 +45,11 @@ export default function ArticleDetail() {
 
     return (
         <>
-            <Toolbar />
+            
 
             <Box sx={{ px: { xs: 2, md: 6 }, py: 4 }}>
                 <Box sx={{ maxWidth: 900, mx: "auto" }}>
-                    {/* Header */}
+                  
                     <Stack
                         sx={{
                             width: "100%",
@@ -84,7 +81,7 @@ export default function ArticleDetail() {
                         </Button>
                     </Stack>
 
-                    {/* Title */}
+                    
                     <Typography
                         variant="h3"
                         fontWeight="bold"
@@ -103,9 +100,7 @@ export default function ArticleDetail() {
                         </Typography>
                     )}
 
-                    {/* -------------------------------
-                        FIX #1 APPLIED IMAGE
-                    -------------------------------- */}
+                   
                     {image && (
                         <Box sx={{ textAlign: "center", my: 3 }}>
                             <img
@@ -130,7 +125,6 @@ export default function ArticleDetail() {
                         </Box>
                     )}
 
-                    {/* Author */}
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2, my: 3 }}>
                         <Avatar>{author[0]}</Avatar>
                         <Box>
@@ -143,7 +137,7 @@ export default function ArticleDetail() {
 
                     <Divider sx={{ my: 3 }} />
 
-                    {/* Content */}
+                    
                     {paragraphs.length > 0 ? (
                         paragraphs.map((p, i) => (
                             <Typography
@@ -158,9 +152,6 @@ export default function ArticleDetail() {
                         <Typography>No detailed text available.</Typography>
                     )}
 
-                    {/* -------------------------------
-                        FIX #2 Read Full Article Link
-                    -------------------------------- */}
                     <Box sx={{ textAlign: "left", mt: 4 }}>
                         <Button
                             variant="contained"
@@ -172,7 +163,7 @@ export default function ArticleDetail() {
                                     "noopener"
                                 )
                             }
-                            sx={{ bgcolor: "grey" }}
+                            sx={{bgcolor: "#c00707"  }}
                         >
                             Read full article at NYT
                         </Button>

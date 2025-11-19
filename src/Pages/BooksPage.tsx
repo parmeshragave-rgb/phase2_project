@@ -51,7 +51,7 @@ export default function BooksPage() {
         <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
           <Grid container spacing={2} sx={{ display: "flex", justifyContent: "center" }}>
             {Array.from({ length: 8 }).map((_, i) => (
-              <Grid item xs={12} sm={6} md={3} key={i}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={i}>
                 <SkeletonCard variant="vertical" height={330} width="280px" />
               </Grid>
             ))}
@@ -64,7 +64,7 @@ export default function BooksPage() {
     <>
       
 
-      <Box sx={{ display: "flex", justifyContent: "center" }}>
+      <Box sx={{ display: "flex" }}>
         <Box sx={{ p: 2 }}>
           <Typography
             variant="h4"
@@ -81,7 +81,7 @@ export default function BooksPage() {
 
           <Grid container spacing={2} sx={{ display: "flex", justifyContent: "center" }}>
             {books.map((book: any) => (
-              <Grid item xs={12} sm={6} md={3} key={book.primary_isbn13}>
+              <Grid sx={{ display: "flex", justifyContent: "center" }} size={{ xs: 12, sm: 6, md: 3 }} key={book.primary_isbn13}>
                 <Card
                   sx={{ cursor: "pointer", borderRadius: 2, height: 330, width: 280 }}
                   onClick={() =>

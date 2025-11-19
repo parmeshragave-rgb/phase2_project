@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">55.55% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>5/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">25% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">25% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">55.55% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -184,13 +184,13 @@
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -201,7 +201,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -246,7 +246,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -254,7 +254,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -283,16 +283,16 @@ export default function BookDetailPage() {
     const { state } = useLocation();
     const book = state?.book;
 &nbsp;
-    <span class="missing-if-branch" title="else path not taken" >E</span>if (!book)
+    if (!book)
         return (
             &lt;Typography sx={{ mt: 10, textAlign: "center" }}&gt;
                 No book data found
             &lt;/Typography&gt;
         );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return (</span>
+    return (
         &lt;&gt;
-            &lt;Toolbar /&gt;
+           
             
 &nbsp;
             &lt;Box sx={{ p: 3, maxWidth: 800, mx: "auto" }}&gt;
@@ -301,7 +301,7 @@ export default function BookDetailPage() {
                     variant="outlined"
                     size="small"
                     color="error"
-                    onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >navigate(-1)}</span>
+                    onClick={() =&gt; navigate(-1)}
                     sx={{
                         fontWeight: "bold",
                         borderRadius: "20px",
@@ -345,8 +345,8 @@ export default function BookDetailPage() {
                     Buy This Book:
                 &lt;/Typography&gt;
 &nbsp;
-                {book.buy_links?.map(<span class="fstat-no" title="function not covered" >(l</span>ink: BuyLink) =&gt; (
-<span class="cstat-no" title="statement not covered" >                    &lt;Button</span>
+                {book.buy_links?.map((link: BuyLink) =&gt; (
+                    &lt;Button
                         key={link.name}
                         variant="contained"
                         sx={{
@@ -354,7 +354,7 @@ export default function BookDetailPage() {
                             color: "whitesmoke",
                             fontWeight: "bold",
                         }}
-                        onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >window.open(link.url, "_blank")}</span>
+                        onClick={() =&gt; window.open(link.url, "_blank")}
                     &gt;
                         {link.name}
                     &lt;/Button&gt;
@@ -370,7 +370,7 @@ export default function BookDetailPage() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-19T02:30:16.622Z
+                at 2025-11-19T06:34:14.526Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

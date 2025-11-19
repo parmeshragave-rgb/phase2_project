@@ -46,6 +46,9 @@ function getImage(article: any): string {
 }
 
 export default function CategoryPage() {
+   
+    window.scrollTo(0, 0);
+
   const { name } = useParams<{ name: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -60,7 +63,7 @@ export default function CategoryPage() {
 
   const items = sectionStories[name || ""] || [];
 
-  // -------- PAGINATION -------- //
+  
   const ITEMS_PER_PAGE = 8;
   const [page, setPage] = useState(1);
 
@@ -144,10 +147,10 @@ export default function CategoryPage() {
   return (
     <Box sx={{ p: 3, display: "flex", justifyContent: "center" }}>
       <Grid container justifyContent="center">
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12}}>
           <Toolbar />
 
-          {/* BACK BUTTON */}
+          
           <Button
             variant="outlined"
             size="small"
@@ -187,7 +190,7 @@ export default function CategoryPage() {
             )}
           </Box>
 
-          {/* PAGINATION */}
+    
           {items.length > ITEMS_PER_PAGE && (
             <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
               <Pagination

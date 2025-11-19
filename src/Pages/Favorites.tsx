@@ -75,6 +75,23 @@ export default function Favorites() {
 
   return (
     <Box sx={{ p: 3 }}>
+         <Box sx={{ px: { xs: 2, md: 0 }, mb: 2 }}>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            color="error"
+                            onClick={() => navigate(-1)}
+                            sx={{
+                                fontWeight: "bold",
+                                borderRadius: "20px",
+                                px: { xs: 2, md: 3 },
+                                py: { xs: 0.3, md: 0.7 },
+                                
+                            }}
+                        >
+                            Back
+                        </Button>
+                    </Box>
       <Typography variant="h4" mb={2}>
         Your Favorites
       </Typography>

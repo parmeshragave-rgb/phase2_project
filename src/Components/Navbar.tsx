@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -36,11 +36,11 @@ export default function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [openNewsletter, setOpenNewsletter] = useState(false);
 
-  // avatar menu
+  
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
 
-  // DATE+TIME
+  
   const [dateTime, setDateTime] = useState("");
   useEffect(() => {
     const update = () => {
@@ -69,14 +69,14 @@ export default function Navbar() {
     navigate("/");
   };
 
-  // SUBSCRIBE LOGIC
+ 
   const handleSubscribeButton = () => {
     if (isSubscribed) {
-      // already subscribed → unsubscribe
+    
       dispatch(setSubscribed(false));
       return;
     }
-    // open subscribe dialog
+ 
     setOpenNewsletter(true);
   };
 
@@ -85,7 +85,7 @@ export default function Navbar() {
     setOpenNewsletter(false);
   };
 
-  // MOBILE DRAWER
+  
   const drawer = (
     <Box sx={{ width: 260, p: 2 }}>
       <Typography
@@ -105,12 +105,13 @@ export default function Navbar() {
           { label: "Favorites", to: "/favorites" },
         ].map((item) => (
           <ListItem
-            button
+      
             key={item.to}
             onClick={() => {
               navigate(item.to);
               setDrawerOpen(false);
             }}
+            sx={{ cursor: "pointer" }}
           >
             <ListItemText primary={item.label} />
           </ListItem>
@@ -119,11 +120,11 @@ export default function Navbar() {
         <Divider sx={{ my: 2 }} />
 
         <ListItem
-          button
           onClick={() => {
             handleSubscribeButton();
             setDrawerOpen(false);
           }}
+          sx={{ cursor: "pointer" }}
         >
           <ListItemText
             primary={isSubscribed ? "Unsubscribe" : "Subscribe"}
@@ -132,21 +133,21 @@ export default function Navbar() {
 
         {!isAuthenticated ? (
           <ListItem
-            button
             onClick={() => {
               navigate("/login");
               setDrawerOpen(false);
             }}
+            sx={{ cursor: "pointer" }}
           >
             <ListItemText primary="Login / Sign Up" />
           </ListItem>
         ) : (
           <ListItem
-            button
             onClick={() => {
               handleLogout();
               setDrawerOpen(false);
             }}
+            sx={{ cursor: "pointer" }}
           >
             <ListItemText primary="Logout" />
           </ListItem>
@@ -157,7 +158,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* TOP NAV */}
+      
       <AppBar
         position="fixed"
         elevation={0}
@@ -171,7 +172,7 @@ export default function Navbar() {
         }}
       >
         <Toolbar sx={{ display: "flex" }}>
-          {/* DATE */}
+        
           <Typography
             variant="body2"
             sx={{
@@ -184,7 +185,7 @@ export default function Navbar() {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          {/* CENTER LOGO */}
+          
           <Box
             sx={{
               cursor: "pointer",
@@ -209,7 +210,7 @@ export default function Navbar() {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          {/* RIGHT SIDE */}
+          
           <Stack
             direction="row"
             spacing={2}
@@ -256,6 +257,7 @@ export default function Navbar() {
                   anchorEl={anchorEl}
                   open={menuOpen}
                   onClose={handleClose}
+                  sx={{zIndex:2000}}
                 >
                   <MenuItem disabled>{user?.username}</MenuItem>
                   <MenuItem onClick={handleLogout}>Logout</MenuItem>
@@ -264,7 +266,7 @@ export default function Navbar() {
             )}
           </Stack>
 
-          {/* MOBILE MENU */}
+        
           <IconButton
             sx={{ display: { xs: "flex", md: "none" } }}
             onClick={() => setDrawerOpen(true)}
@@ -274,7 +276,7 @@ export default function Navbar() {
         </Toolbar>
       </AppBar>
 
-      {/* BLACK CATEGORY BAR */}
+      
       <AppBar
         position="fixed"
         elevation={0}
@@ -297,7 +299,6 @@ export default function Navbar() {
             { label: "Home", to: "/" },
             { label: "Articles", to: "/search" },
             { label: "Books", to: "/books" },
-            { label: "Movies", to: "/movies" },
             { label: "Favorites", to: "/favorites" },
           ].map((item) => (
             <Typography
@@ -315,19 +316,19 @@ export default function Navbar() {
         </Toolbar>
       </AppBar>
 
-      {/* MOBILE DRAWER */}
+  
       <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)} sx={{zIndex: 2000}}>
         {drawer}
       </Drawer>
 
-      {/* NEWSLETTER DIALOG */}
+    
       <NewsletterDialog
         open={openNewsletter}
         onClose={() => setOpenNewsletter(false)}
         onSuccess={handleSubscribedSuccess}
       />
 
-      {/* SPACER BELOW NAVBAR */}
+      
       <Box sx={{ height: "110px" }} />
     </>
   );

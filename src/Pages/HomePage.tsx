@@ -49,7 +49,7 @@ function HomePage() {
     dispatch(fetchPopularStories() as any);
   }, []);
 
-  // ---------------- MAIN CARD ----------------
+ 
   const MainCard = ({ article }: any) => {
     const img =
       article?.multimedia?.[0]?.url ||
@@ -118,7 +118,7 @@ function HomePage() {
     );
   };
 
-  // ---------------- POPULAR CARD ----------------
+ 
   const PopularCard = ({ article }: any) => {
     const img =
       article.media?.[0]?.["media-metadata"]?.[2]?.url ||
@@ -157,7 +157,6 @@ function HomePage() {
     );
   };
 
-  // ---------------- LOADING ----------------
   if (loading) {
     return (
       <Box sx={{ p: 3, display: "flex", justifyContent: "center" }}>
@@ -203,15 +202,15 @@ function HomePage() {
     );
   }
 
-  // ---------------- UI ----------------
+ 
   return (
     <Box sx={{ p: 3, display: "flex", justifyContent: "center" }}>
       <Grid container spacing={4}>
-        {/* LEFT COLUMN */}
+        
         <Grid item xs={12} md={8}>
           <Toolbar />
 
-          {/* TOP STORIES */}
+          
           <Typography variant="h4" mb={2}>
             Top Stories
           </Typography>
@@ -222,7 +221,7 @@ function HomePage() {
 
           <Divider sx={{ my: 4 }} />
 
-          {/* --- SECTION STORIES (WORLD, TECHNOLOGY) --- */}
+          
           {SECTIONS.map(
             (sec) =>
               sectionStories[sec] && (
@@ -242,7 +241,7 @@ function HomePage() {
                       {sec}
                     </Typography>
 
-                    {/* SEE MORE BUTTON */}
+                   
                     <Button
                       onClick={() => navigate(`/category/${sec}`)}
                       sx={{
@@ -256,7 +255,7 @@ function HomePage() {
                     </Button>
                   </Box>
 
-                  {/* Show first 5 only */}
+                  
                   {sectionStories[sec].slice(0, 5).map((a: any) => (
                     <MainCard key={a.url} article={a} />
                   ))}
@@ -265,7 +264,7 @@ function HomePage() {
           )}
         </Grid>
 
-        {/* RIGHT COLUMN */}
+       
         <Grid item xs={12} md={4} sx={{ position: "sticky", top: 80 }}>
           <Toolbar />
           <Typography variant="h5" mb={2}>

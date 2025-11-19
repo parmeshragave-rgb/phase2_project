@@ -1,10 +1,11 @@
 
+import React from "react";
 import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../redux";
 
 interface Props {
-  children: JSX.Element;
+  children: React.ReactNode;
 }
 
 export default function ProtectedRoute({ children }: Props) {

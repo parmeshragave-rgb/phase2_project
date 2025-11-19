@@ -6,24 +6,24 @@ import HomePage from "../Pages/HomePage";
 
 import * as homeActions from "../redux/home/HomeActions";
 
-// ---------- MOCK DISPATCH ACTIONS ----------
+
 jest.mock("../redux/home/HomeActions", () => ({
   fetchTopStories: jest.fn(() => ({ type: "FETCH_TOP" })),
   fetchSectionStories: jest.fn(() => ({ type: "FETCH_SEC" })),
   fetchPopularStories: jest.fn(() => ({ type: "FETCH_POP" })),
 }));
 
-// ---------- MOCK navigate ----------
+
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: () => mockNavigate,
 }));
 
-// ---------- MOCK FavoriteHeart (to prevent auth crashes) ----------
+
 jest.mock("../Components/FavoriteHeart", () => () => <div />);
 
-// ---------- MOCK STORE ----------
+
 const createMockStore = (state: any) => ({
   getState: () => state,
   dispatch: jest.fn(),
@@ -42,7 +42,7 @@ const renderHome = (state: any) => {
   );
 };
 
-// ---------- DEFAULT EMPTY STATE (Loading Mode) ----------
+
 const loadingState = {
   news: {
     topStories: [],
@@ -51,7 +51,7 @@ const loadingState = {
   },
 };
 
-// ---------- FILLED STATE TO AVOID LOADING BUG ----------
+
 const filledState = {
   news: {
     topStories: [

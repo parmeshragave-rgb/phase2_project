@@ -160,11 +160,11 @@ export default function Search() {
           objectFit: "cover",
         }}
       />
-      <CardContent sx={{ flex: 1 }}>
-        <Typography fontWeight="bold" sx={{ mb: 1 }}>
+      <CardContent sx={{ flex: 1 ,}}>
+        <Typography fontWeight="bold" sx={{ mb: 1 ,fontSize: { xs: "13px", sm: "15px", md: "17px" },}}>
           {item.headline?.main}
         </Typography>
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+        <Typography variant="body2" sx={{ color: "text.secondary", fontSize: { xs: "11px", sm: "13px", md: "14px" }, }}>
           {item.abstract}
         </Typography>
       </CardContent>
@@ -354,6 +354,8 @@ export default function Search() {
               count={totalPages}
               page={page}
               onChange={(_, v) => setPage(v)}
+   
+              onClick={() =>  window.scrollTo(0, 0)}
             />
           </Box>
         )}

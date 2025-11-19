@@ -22,14 +22,14 @@ jest.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
-// ---- MOCK REDUX STORE ---- //
+
 const createMockStore = (state: any) => ({
   getState: () => state,
   dispatch: jest.fn(),
   subscribe: jest.fn(),
 });
 
-// ---- RENDER METHOD ---- //
+
 const renderCategory = (state: any) => {
   const store = createMockStore(state);
 
@@ -42,7 +42,7 @@ const renderCategory = (state: any) => {
   );
 };
 
-// -------- DEFAULT EMPTY STATE ---------- //
+
 const emptyState = {
   news: {
     sectionStories: {

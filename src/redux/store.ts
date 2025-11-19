@@ -38,12 +38,12 @@ const storage =
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth","subscription"], // persist only auth reducer
+  whitelist: ["auth","subscription"], 
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-// 🔥 Enable Redux DevTools + Thunk
+
 const composeEnhancers =
   (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 

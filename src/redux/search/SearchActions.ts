@@ -1,4 +1,4 @@
-// src/redux/search/SearchActions.ts
+
 import axios from "axios";
 import type { Dispatch } from "redux";
 
@@ -32,7 +32,7 @@ export type SearchActions =
 
 const API_KEY = import.meta.env.VITE_NYT_API_KEY;
 
-// Build filter query:
+
 const buildFQ = (topic?: string, keywords?: string[]) => {
   const parts: string[] = [];
 

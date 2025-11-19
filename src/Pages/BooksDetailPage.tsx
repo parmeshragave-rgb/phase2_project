@@ -27,7 +27,7 @@ export default function BookDetailPage() {
 
     return (
         <>
-            <Toolbar />
+           
             
 
             <Box sx={{ p: 3, maxWidth: 800, mx: "auto" }}>

@@ -1,4 +1,4 @@
-// src/pages/Search.tsx
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Box,
@@ -56,7 +56,7 @@ export default function Search() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Local UI state
+  
   const [query, setQuery] = useState("");
   const [topic, setTopic] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
@@ -65,16 +65,16 @@ export default function Search() {
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Toast + cooldown
+  
   const [toastOpen, setToastOpen] = useState(false);
   const [cooldown, setCooldown] = useState(false);
 
-  // Redux state
+  
   const { articles, loading, noResult, totalPages } = useSelector(
     (state: RootState) => state.search
   );
 
-  // DEBOUNCE logic
+  
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const triggerSearch = useCallback(
@@ -101,12 +101,12 @@ export default function Search() {
     [dispatch, query, topic, keywords, startDate, endDate, cooldown]
   );
 
-  // Pagination only
+  
   useEffect(() => {
     triggerSearch(page);
   }, [page]);
 
-  // Debounced search on typing + filters
+  
   const debouncedSearch = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -115,17 +115,17 @@ export default function Search() {
     }, 700);
   };
 
-  // When query changes → debounce
+  
   useEffect(() => {
     debouncedSearch();
   }, [query]);
 
-  // When filters change → debounce
+  
   useEffect(() => {
     debouncedSearch();
   }, [topic, keywords, startDate, endDate]);
 
-  // Manual search button
+
   const handleSearch = () => {
     debouncedSearch();
   };
@@ -172,7 +172,7 @@ export default function Search() {
 
   return (
     <>
-      {/* Toast */}
+  
       <Snackbar
         open={toastOpen}
         autoHideDuration={2500}
@@ -181,7 +181,7 @@ export default function Search() {
       />
 
       <Box sx={{ width: "100%", mt: 10 }}>
-        {/* Search bar */}
+        
         <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
           <Box sx={{ width: { xs: "90%", sm: "80%", md: "60%" } }}>
             <Paper
@@ -248,7 +248,7 @@ export default function Search() {
           </Box>
         </Box>
 
-        {/* Filters */}
+        
         <Collapse in={showFilters}>
           <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
             <Paper sx={{ p: 2, width: { xs: "90%", sm: "80%", md: "60%" } }}>
@@ -317,7 +317,7 @@ export default function Search() {
           </Box>
         </Collapse>
 
-        {/* Results */}
+        
         <Box sx={{ p: 2 }}>
           {loading ? (
             <Grid container spacing={3} justifyContent="center">
@@ -346,7 +346,7 @@ export default function Search() {
           )}
         </Box>
 
-        {/* Pagination */}
+        
         {articles.length > 0 && (
           <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
             <Pagination

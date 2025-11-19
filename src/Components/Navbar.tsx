@@ -297,6 +297,7 @@ export default function Navbar() {
             { label: "Home", to: "/" },
             { label: "Articles", to: "/search" },
             { label: "Books", to: "/books" },
+            { label: "Movies", to: "/movies" },
             { label: "Favorites", to: "/favorites" },
           ].map((item) => (
             <Typography

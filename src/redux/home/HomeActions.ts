@@ -6,7 +6,6 @@ export const FETCH_SECTION_STORIES = "FETCH_SECTION_STORIES" as const;
 export const FETCH_POPULAR_STORIES = "FETCH_POPULAR_STORIES" as const;
 export const SET_SINGLE_SECTION = "SET_SINGLE_SECTION" as const;
 
-
 export interface FetchTopStoriesAction {
   type: typeof FETCH_TOP_STORIES;
   payload: any[];
@@ -22,12 +21,22 @@ export interface FetchPopularStoriesAction {
   payload: any[];
 }
 
+export interface SetSingleSectionAction {
+  type: typeof SET_SINGLE_SECTION;
+  payload: {
+    section: string;
+    stories: any[];
+  };
+}
+
 export type HomeActions =
   | FetchTopStoriesAction
   | FetchSectionStoriesAction
-  | FetchPopularStoriesAction;
+  | FetchPopularStoriesAction
+  | SetSingleSectionAction; 
 
 const API_KEY = import.meta.env.VITE_NYT_API_KEY;
+
 
 export const fetchTopStories = () => {
   return async (dispatch: Dispatch<HomeActions>) => {
@@ -42,6 +51,7 @@ export const fetchTopStories = () => {
     });
   };
 };
+
 
 export const fetchSectionStories = (sections: string[]) => {
   return async (dispatch: Dispatch<HomeActions>) => {
@@ -70,6 +80,7 @@ export const fetchSectionStories = (sections: string[]) => {
   };
 };
 
+
 export const fetchPopularStories = () => {
   return async (dispatch: Dispatch<HomeActions>) => {
     const res = await axios.get(
@@ -84,16 +95,22 @@ export const fetchPopularStories = () => {
   };
 };
 
-export const fetchSingleSection = (section: string) => async (dispatch: any) => {
-  try {
-    const url = `https://api.nytimes.com/svc/topstories/v2/${section}.json?api-key=${API_KEY}`;
-    const { data } = await axios.get(url);
 
-    dispatch({
-      type: SET_SINGLE_SECTION,
-      payload: { section, stories: data.results },
-    });
-  } catch (e) {
-    console.log("Error loading section:", e);
-  }
+export const fetchSingleSection = (section: string) => {
+  return async (dispatch: Dispatch<HomeActions>) => {
+    try {
+      const url = `https://api.nytimes.com/svc/topstories/v2/${section}.json?api-key=${API_KEY}`;
+      const { data } = await axios.get(url);
+
+      dispatch({
+        type: SET_SINGLE_SECTION,
+        payload: {
+          section,
+          stories: data.results,
+        },
+      });
+    } catch (e) {
+      console.log("Error loading section:", e);
+    }
+  };
 };

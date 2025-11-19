@@ -2,6 +2,7 @@ import {
   FETCH_TOP_STORIES,
   FETCH_SECTION_STORIES,
   FETCH_POPULAR_STORIES,
+  SET_SINGLE_SECTION
 } from "./HomeActions"
 
 import type { HomeActions } from "./HomeActions"
@@ -32,7 +33,7 @@ export const NewsReducer = (
     case FETCH_POPULAR_STORIES:
       return { ...state, popularStories: action.payload };
 
-    case "SET_SINGLE_SECTION":
+    case SET_SINGLE_SECTION:
       return {
         ...state,
         sectionStories: {

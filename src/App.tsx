@@ -11,7 +11,7 @@ import BooksPage from "./Pages/BooksPage";
 import Favorites from "./Pages/Favorites";
 import Footer from "./Components/Footer";
 import CategoryPage from "./Pages/CategoryPage";
-import MovieDetail from "./Pages/MovieDetail";
+
 
 import { Box } from "@mui/material";
 
@@ -36,7 +36,6 @@ function App() {
           <Route path="/books" element={<BooksPage />} />
           <Route path="/book/:id" element={<BookDetailPage />} />
           <Route path="/favorites" element={<Favorites />} />
-          <Route path="/movie/:slug" element={<MovieDetail />} />
           <Route path="*" element={<div>Page not found</div>} />
         </Routes>
       </Box>

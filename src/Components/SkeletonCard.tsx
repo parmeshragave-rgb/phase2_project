@@ -1,5 +1,5 @@
 import { Card, CardContent, Skeleton } from "@mui/material";
-
+import React from "react";
 export default function SkeletonCard({
   width = "100%",
   height = 250,

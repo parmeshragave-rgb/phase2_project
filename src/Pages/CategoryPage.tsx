@@ -1,4 +1,4 @@
-// src/pages/CategoryPage.tsx
+import React from "react";
 import { useEffect, useState } from "react";
 import {
   Box,
@@ -176,8 +176,9 @@ export default function CategoryPage() {
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             {items.length === 0 ? (
               <>
-                <Skeleton variant="rectangular" width={800} height={150} sx={{ mb: 2 }} />
-                <Skeleton variant="rectangular" width={800} height={150} sx={{ mb: 2 }} />
+                <Skeleton data-testid="category-skeleton" variant="rectangular" width={800} height={150} sx={{ mb: 2 }} />
+<Skeleton data-testid="category-skeleton" variant="rectangular" width={800} height={150} sx={{ mb: 2 }} />
+
               </>
             ) : (
               paginatedItems.map((a: any) => (

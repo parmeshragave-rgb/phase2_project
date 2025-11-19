@@ -8,6 +8,11 @@ import {
     Toolbar,
 } from "@mui/material";
 
+interface BuyLink {
+    name: string;
+    url: string;
+}
+
 export default function BookDetailPage() {
     const navigate = useNavigate();
     const { state } = useLocation();
@@ -71,12 +76,11 @@ export default function BookDetailPage() {
                     Rank: #{book.rank}
                 </Typography>
 
-
                 <Typography variant="h5" sx={{ mb: 1, fontFamily: "sans-serif", fontWeight: "bold" }}>
                     Buy This Book:
                 </Typography>
 
-                {book.buy_links?.map((link: any) => (
+                {book.buy_links?.map((link: BuyLink) => (
                     <Button
                         key={link.name}
                         variant="contained"

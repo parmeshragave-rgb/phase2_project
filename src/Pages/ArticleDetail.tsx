@@ -1,3 +1,4 @@
+// src/pages/ArticleDetail.tsx
 import { useLocation, useNavigate } from "react-router-dom";
 import {
     Box,
@@ -16,13 +17,19 @@ export default function ArticleDetail() {
     const { state } = useLocation();
     const article = state?.article;
 
+    // -------------------------------
+    // FIX #1: Unified Reliable Image
+    // -------------------------------
     const image =
-        article.multimedia?.[0]?.url ||
-        article.media?.[0]?.["media-metadata"]?.[2]?.url ||
-        article.media?.[0]?.["media-metadata"]?.[1]?.url ||
-        article.media?.[0]?.["media-metadata"]?.[0]?.url ||
-        "";
+        article?.multimedia?.[0]?.url
+            ? article.multimedia[0].url.startsWith("http")
+                ? article.multimedia[0].url
+                : `https://www.nytimes.com/${article.multimedia[0].url}`
+            : article?.media?.[0]?.["media-metadata"]?.slice(-1)?.[0]?.url || "";
 
+    // -------------------------------
+    // Normalize fields
+    // -------------------------------
     const title = article.title || article.headline?.main;
     const abstract = article.abstract || article.snippet;
     const author =
@@ -45,10 +52,11 @@ export default function ArticleDetail() {
 
             <Box sx={{ px: { xs: 2, md: 6 }, py: 4 }}>
                 <Box sx={{ maxWidth: 900, mx: "auto" }}>
+                    {/* Header */}
                     <Stack
                         sx={{
-                            width: "100%",          // full responsive width
-                            maxWidth: 900,          // match your article container
+                            width: "100%",
+                            maxWidth: 900,
                             mb: 2,
                         }}
                     >
@@ -65,17 +73,18 @@ export default function ArticleDetail() {
                             sx={{
                                 mt: 3,
                                 mb: 3,
-                                ml:2,
+                                ml: 2,
                                 fontWeight: "bold",
                                 width: "fit-content",
                                 px: { xs: 2, md: 3 },
                                 py: { xs: 0.5, md: 0.8 },
                             }}
                         >
-                        Back
+                            Back
                         </Button>
                     </Stack>
 
+                    {/* Title */}
                     <Typography
                         variant="h3"
                         fontWeight="bold"
@@ -94,6 +103,9 @@ export default function ArticleDetail() {
                         </Typography>
                     )}
 
+                    {/* -------------------------------
+                        FIX #1 APPLIED IMAGE
+                    -------------------------------- */}
                     {image && (
                         <Box sx={{ textAlign: "center", my: 3 }}>
                             <img
@@ -118,12 +130,11 @@ export default function ArticleDetail() {
                         </Box>
                     )}
 
+                    {/* Author */}
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2, my: 3 }}>
                         <Avatar>{author[0]}</Avatar>
                         <Box>
-                            <Typography variant="subtitle1">
-                                {author}
-                            </Typography>
+                            <Typography variant="subtitle1">{author}</Typography>
                             <Typography variant="caption" color="text.secondary">
                                 {published ? new Date(published).toLocaleString() : ""}
                             </Typography>
@@ -132,6 +143,7 @@ export default function ArticleDetail() {
 
                     <Divider sx={{ my: 3 }} />
 
+                    {/* Content */}
                     {paragraphs.length > 0 ? (
                         paragraphs.map((p, i) => (
                             <Typography
@@ -146,19 +158,25 @@ export default function ArticleDetail() {
                         <Typography>No detailed text available.</Typography>
                     )}
 
+                    {/* -------------------------------
+                        FIX #2 Read Full Article Link
+                    -------------------------------- */}
                     <Box sx={{ textAlign: "left", mt: 4 }}>
                         <Button
                             variant="contained"
                             endIcon={<OpenInNewIcon />}
                             onClick={() =>
-                                window.open(article.url, "_blank", "noopener")
+                                window.open(
+                                    article.url || article.link || article.web_url,
+                                    "_blank",
+                                    "noopener"
+                                )
                             }
                             sx={{ bgcolor: "grey" }}
                         >
                             Read full article at NYT
                         </Button>
                     </Box>
-
                 </Box>
             </Box>
         </>

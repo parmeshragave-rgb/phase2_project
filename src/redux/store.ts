@@ -1,8 +1,7 @@
-
-import { createStore } from "redux";
-import rootReducer from "./reducers";
+import { createStore, applyMiddleware, compose } from "redux";
+import { thunk } from "redux-thunk";
+import rootReducer from ".";
 import { persistStore, persistReducer } from "redux-persist";
-
 
 const createNoopStorage = () => {
   return {
@@ -36,18 +35,21 @@ const storage =
       : createNoopStorage()
     : createNoopStorage();
 
-
-
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth"],
+  whitelist: ["auth","subscription"], // persist only auth reducer
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-const enhancer =
-  (window as any).__REDUX_DEVTOOLS_EXTENSION__?.() ?? undefined;
+// 🔥 Enable Redux DevTools + Thunk
+const composeEnhancers =
+  (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
-export const store = createStore(persistedReducer, enhancer);
+export const store = createStore(
+  persistedReducer,
+  composeEnhancers(applyMiddleware(thunk))
+);
+
 export const persistor = persistStore(store);

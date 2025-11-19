@@ -1,6 +1,4 @@
-
-
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -14,16 +12,15 @@ import {
 interface Props {
   open: boolean;
   onClose: () => void;
+  onSuccess: () => void; // ⭐ NEW
 }
 
-export default function NewsletterDialog({ open, onClose }: Props) {
+export default function NewsletterDialog({ open, onClose, onSuccess }: Props) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const validateEmail = (email: string) => {
-    return /\S+@\S+\.\S+/.test(email);
-  };
+  const validateEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
 
   const handleSubscribe = () => {
     setError("");
@@ -39,11 +36,11 @@ export default function NewsletterDialog({ open, onClose }: Props) {
       return;
     }
 
-    // SUCCESS
     setSuccess("You have successfully subscribed!");
-    setEmail("");
 
-    // You can also store in API/localStorage/etc
+    setTimeout(() => {
+      onSuccess(); // ⭐ closes + updates Redux
+    }, 1000);
   };
 
   return (
@@ -68,10 +65,11 @@ export default function NewsletterDialog({ open, onClose }: Props) {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button color="error" onClick={onClose}>Cancel</Button>
+
         <Button
           variant="contained"
-          sx={{ bgcolor: "#c00707ff", color: "white" }}
+          sx={{ bgcolor: "#c00707", color: "white" }}
           onClick={handleSubscribe}
         >
           Subscribe

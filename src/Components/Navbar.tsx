@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -16,47 +16,81 @@ import {
   ListItemText,
   Divider,
 } from "@mui/material";
+
 import MenuIcon from "@mui/icons-material/Menu";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import type { RootState } from "../redux/reducers";
-import { logout } from "../redux/actions/actions/authActions";
+
+import type { RootState } from "../redux/index";
+import { logout } from "../redux/auth/authActions";
 import NewsletterDialog from "./NewsletterDialog";
+import { setSubscribed } from "../redux/subscription/subscriptionActions";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [openNewsletter, setOpenNewsletter] = useState(false);
+  const { user, isAuthenticated } = useSelector((s: RootState) => s.auth);
+  const isSubscribed = useSelector((s: RootState) => s.subscription.subscribed);
+
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [openNewsletter, setOpenNewsletter] = useState(false);
 
-  const { user, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
-
+  // avatar menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
 
-  const handleAvatarClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
+  // DATE+TIME
+  const [dateTime, setDateTime] = useState("");
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      setDateTime(
+        now.toLocaleString("en-IN", {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      );
+    };
+    update();
+    const timer = setInterval(update, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
+  const handleAvatarClick = (event: any) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
   const handleLogout = () => {
     dispatch(logout());
-    localStorage.removeItem("token");
-    localStorage.removeItem("loggedInUser");
     handleClose();
     navigate("/");
   };
 
- 
+  // SUBSCRIBE LOGIC
+  const handleSubscribeButton = () => {
+    if (isSubscribed) {
+      // already subscribed → unsubscribe
+      dispatch(setSubscribed(false));
+      return;
+    }
+    // open subscribe dialog
+    setOpenNewsletter(true);
+  };
+
+  const handleSubscribedSuccess = () => {
+    dispatch(setSubscribed(true));
+    setOpenNewsletter(false);
+  };
+
+  // MOBILE DRAWER
   const drawer = (
-    <Box sx={{ width: 250, p: 2 }}>
+    <Box sx={{ width: 260, p: 2 }}>
       <Typography
         variant="h5"
-        sx={{ fontWeight: "bold", mb: 2, textAlign: "center" }}
+        sx={{ fontWeight: "bold", mb: 1, textAlign: "center", color: "#c00707" }}
       >
         Newsly
       </Typography>
@@ -64,56 +98,36 @@ export default function Navbar() {
       <Divider />
 
       <List>
-        <ListItem
-          button
-          onClick={() => {
-            navigate("/");
-            setDrawerOpen(false);
-          }}
-        >
-          <ListItemText primary="Home" />
-        </ListItem>
-
-        <ListItem
-          button
-          onClick={() => {
-            navigate("/search");
-            setDrawerOpen(false);
-          }}
-        >
-          <ListItemText primary="Articles" />
-        </ListItem>
-
-        <ListItem
-          button
-          onClick={() => {
-            navigate("/books");
-            setDrawerOpen(false);
-          }}
-        >
-          <ListItemText primary="Books" />
-        </ListItem>
-
-        <ListItem
-          button
-          onClick={() => {
-            navigate("/favorites");
-            setDrawerOpen(false);
-          }}
-        >
-          <ListItemText primary="Favorites" />
-        </ListItem>
+        {[
+          { label: "Home", to: "/" },
+          { label: "Articles", to: "/search" },
+          { label: "Books", to: "/books" },
+          { label: "Favorites", to: "/favorites" },
+        ].map((item) => (
+          <ListItem
+            button
+            key={item.to}
+            onClick={() => {
+              navigate(item.to);
+              setDrawerOpen(false);
+            }}
+          >
+            <ListItemText primary={item.label} />
+          </ListItem>
+        ))}
 
         <Divider sx={{ my: 2 }} />
 
         <ListItem
           button
           onClick={() => {
-            setOpenNewsletter(true);
+            handleSubscribeButton();
             setDrawerOpen(false);
           }}
         >
-          <ListItemText primary="Subscribe" />
+          <ListItemText
+            primary={isSubscribed ? "Unsubscribe" : "Subscribe"}
+          />
         </ListItem>
 
         {!isAuthenticated ? (
@@ -143,20 +157,51 @@ export default function Navbar() {
 
   return (
     <>
-      <AppBar position="fixed" sx={{ bgcolor: "#adafafff" }}>
-        <Toolbar sx={{ display: "flex", alignItems: "center" }}>
-          <Box onClick={() => navigate("/")} sx={{ cursor: "pointer" }}>
+      {/* TOP NAV */}
+      <AppBar
+        position="fixed"
+        elevation={0}
+        sx={{
+          bgcolor: "white",
+          color: "black",
+          borderBottom: "1px solid #ddd",
+          height: "65px",
+          justifyContent: "center",
+          
+        }}
+      >
+        <Toolbar sx={{ display: "flex" }}>
+          {/* DATE */}
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 500,
+              display: { xs: "none", md: "block" },
+            }}
+          >
+            {dateTime}
+          </Typography>
+
+          <Box sx={{ flexGrow: 1 }} />
+
+          {/* CENTER LOGO */}
+          <Box
+            sx={{
+              cursor: "pointer",
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+            }}
+            onClick={() => navigate("/")}
+          >
             <Stack direction="row" alignItems="center">
               <Typography
                 variant="h4"
-                sx={{ fontWeight: "bold", color: "#c00707ff" }}
+                sx={{ fontWeight: "900", color: "#c00707" }}
               >
                 News
               </Typography>
-              <Typography
-                variant="h4"
-                sx={{ fontWeight: "bold", color: "black" }}
-              >
+              <Typography variant="h4" sx={{ fontWeight: "900" }}>
                 ly.
               </Typography>
             </Stack>
@@ -164,28 +209,7 @@ export default function Navbar() {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <Stack
-            direction="row"
-            spacing={5}
-            alignItems="center"
-            sx={{ display: { xs: "none", md: "flex" } }}
-          >
-            <Button color="inherit" onClick={() => navigate("/")} sx={{fontFamily:"sans-serif",fontWeight:"bold",fontSize:"15px",color:"black"}}>
-              Home
-            </Button>
-            <Button color="inherit" onClick={() => navigate("/search")} sx={{fontFamily:"sans-serif",fontWeight:"bold",fontSize:"15px",color:"black"}}>
-            Article
-            </Button>
-            <Button color="inherit" onClick={() => navigate("/books")} sx={{fontFamily:"sans-serif",fontWeight:"bold",fontSize:"15px",color:"black"}}>
-              Books
-            </Button>
-            <Button color="inherit" onClick={() => navigate("/favorites")} sx={{fontFamily:"sans-serif",fontWeight:"bold",fontSize:"15px",color:"black"}}>
-              Favorites
-            </Button>
-          </Stack>
-
-          <Box sx={{ flexGrow: 1 }} />
-
+          {/* RIGHT SIDE */}
           <Stack
             direction="row"
             spacing={2}
@@ -194,28 +218,29 @@ export default function Navbar() {
           >
             <Button
               sx={{
-                bgcolor: "#c00707ff",
-                color: "whitesmoke",
+                bgcolor: isSubscribed ? "gray" : "#c00707",
+                color: "white",
+                px: 2,
                 fontWeight: "bold",
                 "&:hover": { bgcolor: "#a00505" },
               }}
-              onClick={() => setOpenNewsletter(true)}
+              onClick={handleSubscribeButton}
             >
-              Subscribe
+              {isSubscribed ? "Unsubscribe" : "Subscribe"}
             </Button>
 
             {!isAuthenticated && (
               <Button
                 variant="outlined"
                 sx={{
-                  borderColor: "#c00707ff",
-                  color: "#c00707ff",
+                  borderColor: "#c00707",
+                  color: "#c00707",
                   fontWeight: "bold",
                   "&:hover": { borderColor: "#a00505", color: "#a00505" },
                 }}
                 onClick={() => navigate("/login")}
               >
-                Login / Sign Up
+                Login
               </Button>
             )}
 
@@ -231,7 +256,6 @@ export default function Navbar() {
                   anchorEl={anchorEl}
                   open={menuOpen}
                   onClose={handleClose}
-                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                 >
                   <MenuItem disabled>{user?.username}</MenuItem>
                   <MenuItem onClick={handleLogout}>Logout</MenuItem>
@@ -240,6 +264,7 @@ export default function Navbar() {
             )}
           </Stack>
 
+          {/* MOBILE MENU */}
           <IconButton
             sx={{ display: { xs: "flex", md: "none" } }}
             onClick={() => setDrawerOpen(true)}
@@ -249,19 +274,60 @@ export default function Navbar() {
         </Toolbar>
       </AppBar>
 
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        sx={{ display: { xs: "block", md: "none" } }}
+      {/* BLACK CATEGORY BAR */}
+      <AppBar
+        position="fixed"
+        elevation={0}
+        sx={{
+          top: "65px",
+          bgcolor: "black",
+          height: "45px",
+          justifyContent: "center",
+          zIndex: 1999,
+        }}
       >
+        <Toolbar
+          sx={{
+            display: { xs: "none", md: "flex" },
+            justifyContent: "center",
+            gap: 4,
+          }}
+        >
+          {[
+            { label: "Home", to: "/" },
+            { label: "Articles", to: "/search" },
+            { label: "Books", to: "/books" },
+            { label: "Favorites", to: "/favorites" },
+          ].map((item) => (
+            <Typography
+              key={item.to}
+              sx={{
+                fontWeight: "bold",
+                cursor: "pointer",
+                "&:hover": { textDecoration: "underline" },
+              }}
+              onClick={() => navigate(item.to)}
+            >
+              {item.label}
+            </Typography>
+          ))}
+        </Toolbar>
+      </AppBar>
+
+      {/* MOBILE DRAWER */}
+      <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)} sx={{zIndex: 2000}}>
         {drawer}
       </Drawer>
 
+      {/* NEWSLETTER DIALOG */}
       <NewsletterDialog
         open={openNewsletter}
         onClose={() => setOpenNewsletter(false)}
+        onSuccess={handleSubscribedSuccess}
       />
+
+      {/* SPACER BELOW NAVBAR */}
+      <Box sx={{ height: "110px" }} />
     </>
   );
 }

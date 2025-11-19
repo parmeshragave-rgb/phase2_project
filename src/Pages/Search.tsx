@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// src/pages/Search.tsx
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Box,
   Typography,
@@ -14,25 +15,28 @@ import {
   Chip,
   Collapse,
   Pagination,
-  Toolbar,
+  Snackbar,
 } from "@mui/material";
+
 import SkeletonCard from "../Components/SkeletonCard";
 import FavoriteHeart from "../Components/FavoriteHeart";
 
 import ClearIcon from "@mui/icons-material/Clear";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
-import SearchIcon from '@mui/icons-material/Search';
+import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
+import SearchIcon from "@mui/icons-material/Search";
 
-const API_KEY = import.meta.env?.VITE_NYT_API_KEY || "";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+
+import { fetchSearchArticles } from "../redux/search/SearchActions";
+import type { RootState } from "../redux/index";
+
 const FALLBACK_IMAGE = "https://placehold.co/900x500?text=No+Image";
 const TOPICS = ["Arts", "Business", "Politics", "Science", "Technology", "World"];
 const KEYWORDS = ["Opinion", "Health", "Travel", "Sports", "Culture"];
 
-function getImage(article) {
+function getImage(article: any) {
   const mm = article.multimedia;
-
   let raw =
     (Array.isArray(mm) && mm[0]?.url) ||
     mm?.default?.url ||
@@ -41,7 +45,6 @@ function getImage(article) {
     null;
 
   if (!raw) return FALLBACK_IMAGE;
-
   if (/^https?:\/\//i.test(raw)) return raw;
 
   return raw.startsWith("/")
@@ -51,135 +54,134 @@ function getImage(article) {
 
 export default function Search() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  // Local UI state
   const [query, setQuery] = useState("");
   const [topic, setTopic] = useState("");
-  const [keywords, setKeywords] = useState([]);
-
+  const [keywords, setKeywords] = useState<string[]>([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
-  const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [noResult, setNoResult] = useState(false);
-
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
   const [showFilters, setShowFilters] = useState(false);
 
-  const buildFilter = () => {
-    const parts = [];
-    if (topic) parts.push(`section.name:("${topic}")`);
-    if (keywords.length > 0) {
-      const f = keywords.map(k => `desk:("${k}")`).join(" OR ");
-      parts.push(`(${f})`);
-    }
-    return parts.join(" AND ") || undefined;
-  };
+  // Toast + cooldown
+  const [toastOpen, setToastOpen] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
 
-  const fetchArticles = async (pageNum = 1) => {
-    setLoading(true);
+  // Redux state
+  const { articles, loading, noResult, totalPages } = useSelector(
+    (state: RootState) => state.search
+  );
 
-    const params = {
-      "api-key": API_KEY,
-      page: pageNum - 1,
-      q: query.trim() || " ",
-    };
+  // DEBOUNCE logic
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-    const fq = buildFilter();
-    if (fq) params.fq = fq;
+  const triggerSearch = useCallback(
+    (pageToUse = 1) => {
+      if (cooldown) {
+        setToastOpen(true);
+        return;
+      }
 
-    if (startDate) params.begin_date = startDate.replace(/-/g, "");
-    if (endDate) params.end_date = endDate.replace(/-/g, "");
-    console.log(startDate)
-    try {
-      const res = await axios.get(
-        "https://api.nytimes.com/svc/search/v2/articlesearch.json",
-        { params }
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), 3000);
+
+      dispatch(
+        fetchSearchArticles({
+          query,
+          page: pageToUse,
+          topic,
+          keywords,
+          startDate,
+          endDate,
+        }) as any
       );
+    },
+    [dispatch, query, topic, keywords, startDate, endDate, cooldown]
+  );
 
-      const docs = res.data.response?.docs || [];
-      const hits = res.data.response?.metadata?.hits || 0;
-
-      setArticles(docs);
-      setNoResult(docs.length === 0);
-
-      setTotalPages(Math.min(Math.ceil(hits / 10), 100));
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Pagination only
   useEffect(() => {
-    fetchArticles(page);
+    triggerSearch(page);
   }, [page]);
 
+  // Debounced search on typing + filters
+  const debouncedSearch = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setPage(1);
+      triggerSearch(1);
+    }, 700);
+  };
+
+  // When query changes → debounce
+  useEffect(() => {
+    debouncedSearch();
+  }, [query]);
+
+  // When filters change → debounce
+  useEffect(() => {
+    debouncedSearch();
+  }, [topic, keywords, startDate, endDate]);
+
+  // Manual search button
   const handleSearch = () => {
-    fetchArticles(page);
+    debouncedSearch();
   };
 
-  const toggleKeyword = (k) => {
-    setKeywords(prev =>
-      prev.includes(k) ? prev.filter(x => x !== k) : [...prev, k]
+  const toggleKeyword = (k: string) =>
+    setKeywords((prev) =>
+      prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]
     );
-  };
 
-  const VerticalCard = ({ item }) => {
-    return (
-      <Card
+  const VerticalCard = ({ item }: { item: any }) => (
+    <Card
+      sx={{
+        cursor: "pointer",
+        display: "flex",
+        flexDirection: "row",
+        width: { xs: "380px", md: "800px" },
+        height: { xs: "205px", md: "200px" },
+        borderRadius: 2,
+        overflow: "hidden",
+        boxShadow: 3,
+      }}
+      onClick={() => navigate("/article", { state: { article: item } })}
+    >
+      <FavoriteHeart article={item} />
+      <CardMedia
+        component="img"
+        image={getImage(item)}
         sx={{
-          cursor: "pointer",
-          display: "flex",
-          flexDirection: { xs: "row", sm: "row", md: "row" },
-          width: { xs: "380px", md: "800px" },
-          height: { xs: "205px", md: "200px" },
-          borderRadius: 2,
-          overflow: "hidden",
-          boxShadow: 3,
+          width: "45%",
+          height: "100%",
+          objectFit: "cover",
         }}
-        onClick={() => navigate("/article", { state: { article: item } })}
-
-      >
-                          <FavoriteHeart article={item} />
-
-        
-        <CardMedia
-          component="img"
-          image={getImage(item)}
-          sx={{
-            width: { xs: "45%", sm: "45%", md: "45%" },
-            height: { xs: "100%", sm: "100%", md: "100%" },
-            objectFit: "cover",
-          }}
-        />
-
-        <CardContent sx={{ flex: 1 }}>
-          <Typography
-            fontWeight="bold"
-            sx={{ mb: 1, fontSize: { xs: "0.8rem", md: "1.1rem" } }}
-          >
-            {item.headline?.main}
-          </Typography>
-
-          <Typography
-            variant="body2"
-            sx={{
-              color: "text.secondary",
-              fontSize: { xs: "0.65rem", md: "0.9rem" },
-            }}
-          >
-            {item.abstract}
-          </Typography>
-        </CardContent>
-      </Card>
-    );
-  };
+      />
+      <CardContent sx={{ flex: 1 }}>
+        <Typography fontWeight="bold" sx={{ mb: 1 }}>
+          {item.headline?.main}
+        </Typography>
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          {item.abstract}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <>
-      <Toolbar />
+      {/* Toast */}
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={2500}
+        onClose={() => setToastOpen(false)}
+        message="Please wait a few seconds before searching again."
+      />
+
       <Box sx={{ width: "100%", mt: 10 }}>
+        {/* Search bar */}
         <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
           <Box sx={{ width: { xs: "90%", sm: "80%", md: "60%" } }}>
             <Paper
@@ -192,7 +194,6 @@ export default function Search() {
             >
               <TextField
                 fullWidth
-                variant="outlined"
                 placeholder="Search articles..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -202,20 +203,18 @@ export default function Search() {
                       <SearchIcon />
                     </InputAdornment>
                   ),
-                  endAdornment: (
+                  endAdornment:
                     query && (
                       <InputAdornment position="end">
                         <IconButton
                           onClick={() => {
                             setQuery("");
-                            fetchArticles();
                           }}
                         >
                           <ClearIcon />
                         </IconButton>
                       </InputAdornment>
-                    )
-                  ),
+                    ),
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -231,10 +230,7 @@ export default function Search() {
                 size="small"
                 sx={{
                   ml: 2,
-                  bgcolor: "#c00707ff",
-                  color: "whitesmoke",
-                  width: "5px",
-                  fontWeight: "bold",
+                  bgcolor: "#c00707",
                   "&:hover": { bgcolor: "#a00505" },
                 }}
                 onClick={handleSearch}
@@ -242,30 +238,21 @@ export default function Search() {
                 <SearchIcon />
               </Button>
 
-              <Button
-                variant="text"
-                sx={{
-                  ml: 1,
-                  borderColor: "#c00707ff",
-                  color: "#c00707ff",
-                  fontWeight: "bold",
-                  "&:hover": { borderColor: "#a00505", color: "#a00505" },
-                }}
-                onClick={() => setShowFilters((s) => !s)}
+              <IconButton
+                onClick={() => setShowFilters((p) => !p)}
+                sx={{ color: "#c00707" }}
               >
                 <FilterAltOutlinedIcon />
-              </Button>
+              </IconButton>
             </Paper>
           </Box>
         </Box>
 
+        {/* Filters */}
         <Collapse in={showFilters}>
           <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
             <Paper sx={{ p: 2, width: { xs: "90%", sm: "80%", md: "60%" } }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Topic
-              </Typography>
-
+              <Typography variant="subtitle2">Topic</Typography>
               <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
                 {TOPICS.map((t) => (
                   <Chip
@@ -277,11 +264,8 @@ export default function Search() {
                 ))}
               </Box>
 
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Keywords
-              </Typography>
-
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              <Typography variant="subtitle2">Keywords</Typography>
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
                 {KEYWORDS.map((k) => (
                   <Chip
                     key={k}
@@ -292,61 +276,51 @@ export default function Search() {
                 ))}
               </Box>
 
-              <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
-                Date Range
-              </Typography>
-
-              <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              <Typography variant="subtitle2">Date Range</Typography>
+              <Box sx={{ display: "flex", gap: 2 }}>
                 <TextField
-                  label="Start Date"
                   type="date"
                   size="small"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  color="error"
+                  placeholder="Start"
                 />
-
                 <TextField
-                  label="End Date"
                   type="date"
                   size="small"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  color="error"
-
+                  placeholder="End"
                 />
               </Box>
 
-              <Button
-                size="small"
-                color="error"
-                sx={{ mt: 2 }}
-                onClick={() => {
-                  setTopic("");
-                  setKeywords([]);
-                  setStartDate("");
-                  setEndDate("");
-                }}
-              >
-                Clear Filters
-              </Button>
-               <Button
-                size="small"
-                color="error"
-                sx={{ mt: 2 ,ml:2}}
-                onClick={handleSearch}
-              >
-                Apply Filters
-              </Button>
+              <Box sx={{ mt: 2 }}>
+                <Button
+                  size="small"
+                  sx={{
+                    border: "1px solid #c00707",
+                    color: "#c00707",
+                    px: 2,
+                    "&:hover": { backgroundColor: "#ffe5e5" },
+                  }}
+                  onClick={() => {
+                    setTopic("");
+                    setKeywords([]);
+                    setStartDate("");
+                    setEndDate("");
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </Box>
             </Paper>
           </Box>
         </Collapse>
 
+        {/* Results */}
         <Box sx={{ p: 2 }}>
           {loading ? (
-            <Grid container spacing={3} sx={{ display: "flex", justifyContent: "center" }}>
+            <Grid container spacing={3} justifyContent="center">
               {Array.from({ length: 6 }).map((_, i) => (
                 <Grid item xs={12} sm={6} md={4} key={i}>
                   <SkeletonCard
@@ -358,12 +332,11 @@ export default function Search() {
               ))}
             </Grid>
           ) : noResult ? (
-
             <Typography color="error" textAlign="center">
               No results found
             </Typography>
           ) : (
-            <Grid container spacing={3} sx={{ display: "flex", justifyContent: "center" }}>
+            <Grid container spacing={3} justifyContent="center">
               {articles.map((a, i) => (
                 <Grid item xs={12} sm={6} md={4} key={i}>
                   <VerticalCard item={a} />
@@ -373,12 +346,13 @@ export default function Search() {
           )}
         </Box>
 
+        {/* Pagination */}
         {articles.length > 0 && (
           <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
             <Pagination
               count={totalPages}
               page={page}
-              onChange={(e, v) => setPage(v)}
+              onChange={(_, v) => setPage(v)}
             />
           </Box>
         )}

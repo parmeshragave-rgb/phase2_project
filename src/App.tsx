@@ -8,6 +8,9 @@ import Login from "./Pages/Login";
 import BookDetailPage from "./Pages/BooksDetailPage";
 import BooksPage from "./Pages/BooksPage";
 import Favorites from "./Pages/Favorites";
+import Footer from "./Components/Footer";
+import CategoryPage from "./Pages/CategoryPage";
+
 function App() {
   return (
     <Router>
@@ -20,10 +23,11 @@ function App() {
         <Route path="/books" element={<BooksPage />} />
         <Route path="/book/:id" element={<BookDetailPage />} />
         <Route path="/favorites" element={<Favorites />} />
-
-        <Route path="*" element={<div>Page not found</div>} />
+        <Route path="/category/:name" element={<CategoryPage />} />
+  <Route path="*" element={<div>Page not found</div>} />
 
       </Routes>
+         <Footer />
     </Router>
   );
 }

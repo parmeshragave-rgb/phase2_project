@@ -4,7 +4,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import { IconButton, Box } from "@mui/material";
 import { useSelector } from "react-redux";
 import { addFavorite, removeFavorite, getFavorites } from "../utils/favoriteUtils";
-import type { RootState } from "../redux/reducers";
+import type { RootState } from "../redux";
 
 interface Props {
   article: any;

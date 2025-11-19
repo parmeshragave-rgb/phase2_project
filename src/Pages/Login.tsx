@@ -13,7 +13,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 
 import { useDispatch } from "react-redux";
-import { loginSuccess } from "../redux/actions/actions/authActions";
+import { loginSuccess } from "../redux/auth/authActions";
 import type { User } from "../models/Auth";
 
 interface DecodedToken {

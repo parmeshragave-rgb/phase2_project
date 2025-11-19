@@ -14,7 +14,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getFavorites, removeFavorite } from "../utils/favoriteUtils";
-import type { RootState } from "../redux/reducers";
+import type { RootState } from "../redux";
 
 const FALLBACK_IMAGE = "https://via.placeholder.com/600x400.png?text=No+Image";
 

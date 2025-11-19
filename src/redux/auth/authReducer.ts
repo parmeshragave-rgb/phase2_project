@@ -1,10 +1,10 @@
 
-import type {AuthAction,} from "../actions/actions/authActions";
+import type {AuthAction,} from "./authActions";
 
 import  {
   LOGIN_SUCCESS,
   LOGOUT,
-} from "../actions/actions/authActions";
+} from "./authActions";
 import type { AuthState } from "../../models/Auth";
 
 const initialState: AuthState = {

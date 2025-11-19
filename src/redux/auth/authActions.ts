@@ -1,5 +1,5 @@
 
-import type { LoginSuccessPayload, User } from "../../../models/Auth";
+import type { LoginSuccessPayload, User } from "../../models/Auth";
 
 export const LOGIN_SUCCESS = "LOGIN_SUCCESS";
 export const LOGOUT = "LOGOUT";

@@ -333,7 +333,7 @@ export default function Search() {
               ))}
             </Grid>
           ) : noResult ? (
-            <Typography color="error" textAlign="center">
+            <Typography color="error" variant="h5" textAlign="center">
               No results found
             </Typography>
           ) : (

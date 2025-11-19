@@ -13,7 +13,7 @@ import Footer from "./Components/Footer";
 import CategoryPage from "./Pages/CategoryPage";
 
 
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 function App() {
   return (
@@ -36,7 +36,7 @@ function App() {
           <Route path="/books" element={<BooksPage />} />
           <Route path="/book/:id" element={<BookDetailPage />} />
           <Route path="/favorites" element={<Favorites />} />
-          <Route path="*" element={<div>Page not found</div>} />
+          <Route path="*" element={<Box sx={{display:"flex",justifyContent:"center",alignItems:"center"}}><Typography variant="h3" color="error">Page not found</Typography></Box>} />
         </Routes>
       </Box>
 

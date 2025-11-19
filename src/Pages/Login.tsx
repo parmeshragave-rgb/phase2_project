@@ -120,9 +120,10 @@ export default function Login() {
       username: decoded.name,
       email: decoded.email,
       picture: decoded.picture,
-      id: decoded.sub,
-    };
+      id: decoded.sub,  
+    }
 
+    
     localStorage.setItem("token", token);
     localStorage.setItem("loggedInUser", JSON.stringify(user));
 

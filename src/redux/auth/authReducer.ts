@@ -1,5 +1,5 @@
 
-import type {AuthAction,} from "./authActions";
+import type {AuthAction} from "./authActions";
 
 import  {
   LOGIN_SUCCESS,

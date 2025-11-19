@@ -18,14 +18,13 @@ jest.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
-// ---- SIMPLE MOCK STORE ----
+
 const createMockStore = (state: any) => ({
   getState: () => state,
   dispatch: jest.fn(),
   subscribe: jest.fn(),
 });
 
-// ---- DEFAULT STATE (IMPORTANT: ADD AUTH) ----
 const initialState = {
   search: {
     articles: [],
